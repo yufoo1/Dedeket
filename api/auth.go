@@ -22,7 +22,7 @@ func register(c *gin.Context) {
 	phone := c.DefaultPostForm("phone", "")
 
 	var idArr []int
-	err := global.Db.Select(&idArr, "select id from user_login where username=?", username)
+	err := global.MysqlDb.Select(&idArr, "select id from user_login where username=?", username)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
@@ -40,7 +40,7 @@ func register(c *gin.Context) {
 		}
 	}
 
-	err = global.Db.Select(&idArr, "select id from user_login where phone=?", phone)
+	err = global.MysqlDb.Select(&idArr, "select id from user_login where phone=?", phone)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
@@ -66,7 +66,7 @@ func register(c *gin.Context) {
 		"phone":             phone,
 	})
 
-	r, err := global.Db.Exec("insert into user_login(username, password, phone)values(?, ?, ?)", username, password, phone)
+	r, err := global.MysqlDb.Exec("insert into user_login(username, password, phone)values(?, ?, ?)", username, password, phone)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
@@ -88,7 +88,7 @@ func usernameLogin(c *gin.Context) {
 	token := c.PostForm("token")
 
 	var idArr []int
-	err := global.Db.Select(&idArr, "select id from user_login where username=? and password=?", username, password)
+	err := global.MysqlDb.Select(&idArr, "select id from user_login where username=? and password=?", username, password)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
@@ -112,7 +112,7 @@ func usernameLogin(c *gin.Context) {
 		}
 	}
 
-	_, err = global.Db.Exec("insert into user_login_token(username, token)values(?, ?)", username, token)
+	_, err = global.MysqlDb.Exec("insert into user_login_token(username, token)values(?, ?)", username, token)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
@@ -123,7 +123,7 @@ func usernameLogin(c *gin.Context) {
 
 func logout(c *gin.Context) {
 	username := c.PostForm("username")
-	_, err := global.Db.Exec("delete from user_login_token where username=?", username)
+	_, err := global.MysqlDb.Exec("delete from user_login_token where username=?", username)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
@@ -135,7 +135,7 @@ func logout(c *gin.Context) {
 func selectToken(c *gin.Context) {
 	token := c.PostForm("token")
 	var usernameArr []string
-	err := global.Db.Select(&usernameArr, "select username from user_login_token where token=?", token)
+	err := global.MysqlDb.Select(&usernameArr, "select username from user_login_token where token=?", token)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
@@ -217,7 +217,7 @@ func sms(phone string) (_templateParam string) {
 func sendTemplateParam(c *gin.Context) {
 	phone := c.PostForm("phone")
 	var idArr []int
-	err := global.Db.Select(&idArr, "select id from user_login where phone=?", phone)
+	err := global.MysqlDb.Select(&idArr, "select id from user_login where phone=?", phone)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
@@ -235,7 +235,7 @@ func sendTemplateParam(c *gin.Context) {
 				"phone": phone,
 				"find":  true,
 			})
-			_, err = global.Db.Exec("insert into phone_sms(phone, templateParam)values(?, ?)", phone, templateParam)
+			_, err = global.MysqlDb.Exec("insert into phone_sms(phone, templateParam)values(?, ?)", phone, templateParam)
 			if err != nil {
 				fmt.Println("exec failed, ", err)
 				return
@@ -250,12 +250,12 @@ func sendTemplateParam(c *gin.Context) {
 func dropTemplateParam(c *gin.Context) {
 	phone := c.PostForm("phone")
 	var templateParamArr []string
-	err := global.Db.Select(&templateParamArr, "select templateParam from phone_sms where phone=?", phone)
+	err := global.MysqlDb.Select(&templateParamArr, "select templateParam from phone_sms where phone=?", phone)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
 	} else {
-		_, _err := global.Db.Exec("delete from phone_sms where phone=?", phone)
+		_, _err := global.MysqlDb.Exec("delete from phone_sms where phone=?", phone)
 		if _err != nil {
 			fmt.Println("exec failed, ", _err)
 		} else {
@@ -269,7 +269,7 @@ func phoneLogin(c *gin.Context) {
 	templateParam := c.PostForm("templateParam")
 	token := c.PostForm("token")
 	var phoneArr []string
-	err := global.Db.Select(&phoneArr, "select phone from phone_sms where phone=? and templateParam=?", phone, templateParam)
+	err := global.MysqlDb.Select(&phoneArr, "select phone from phone_sms where phone=? and templateParam=?", phone, templateParam)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
@@ -284,9 +284,9 @@ func phoneLogin(c *gin.Context) {
 			return
 		} else {
 			var usernameArr []string
-			_err := global.Db.Select(&usernameArr, "select username from user_login where phone=?", phone)
+			_err := global.MysqlDb.Select(&usernameArr, "select username from user_login where phone=?", phone)
 			username := usernameArr[0]
-			_, _err = global.Db.Exec("insert into user_login_token(username, token)values(?, ?)", username, token)
+			_, _err = global.MysqlDb.Exec("insert into user_login_token(username, token)values(?, ?)", username, token)
 			if _err != nil {
 				fmt.Println("exec failed, ", _err)
 				return
