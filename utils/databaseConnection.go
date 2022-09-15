@@ -33,9 +33,14 @@ func ConnectMongodbDatabase() {
 	uri := fmt.Sprintf("mongodb://%s:%d",
 		global.MongodbHost,
 		global.MongodbPort)
-	client, _ := mongo.Connect(c, options.Client().SetAuth(options.Credential{
+	client, err := mongo.Connect(c, options.Client().SetAuth(options.Credential{
 		Username: global.MongodbUsername,
 		Password: global.MongodbPassword,
 	}).ApplyURI(uri))
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("open mongodb successfully")
+	}
 	global.MongoDb = client.Database("chat")
 }

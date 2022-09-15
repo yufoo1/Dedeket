@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func register(c *gin.Context) {
+func Register(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 	phone := c.DefaultPostForm("phone", "")
@@ -82,7 +82,7 @@ func register(c *gin.Context) {
 	fmt.Println("insert successfully:", id)
 }
 
-func usernameLogin(c *gin.Context) {
+func UsernameLogin(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 	token := c.PostForm("token")
@@ -121,7 +121,7 @@ func usernameLogin(c *gin.Context) {
 	}
 }
 
-func logout(c *gin.Context) {
+func Logout(c *gin.Context) {
 	username := c.PostForm("username")
 	_, err := global.MysqlDb.Exec("delete from user_login_token where username=?", username)
 	if err != nil {
@@ -132,7 +132,7 @@ func logout(c *gin.Context) {
 	}
 }
 
-func selectToken(c *gin.Context) {
+func SelectToken(c *gin.Context) {
 	token := c.PostForm("token")
 	var usernameArr []string
 	err := global.MysqlDb.Select(&usernameArr, "select username from user_login_token where token=?", token)
@@ -214,7 +214,7 @@ func sms(phone string) (_templateParam string) {
 	return templateParam
 }
 
-func sendTemplateParam(c *gin.Context) {
+func SendTemplateParam(c *gin.Context) {
 	phone := c.PostForm("phone")
 	var idArr []int
 	err := global.MysqlDb.Select(&idArr, "select id from user_login where phone=?", phone)
@@ -247,7 +247,7 @@ func sendTemplateParam(c *gin.Context) {
 	}
 }
 
-func dropTemplateParam(c *gin.Context) {
+func DropTemplateParam(c *gin.Context) {
 	phone := c.PostForm("phone")
 	var templateParamArr []string
 	err := global.MysqlDb.Select(&templateParamArr, "select templateParam from phone_sms where phone=?", phone)
@@ -264,7 +264,7 @@ func dropTemplateParam(c *gin.Context) {
 	}
 }
 
-func phoneLogin(c *gin.Context) {
+func PhoneLogin(c *gin.Context) {
 	phone := c.PostForm("phone")
 	templateParam := c.PostForm("templateParam")
 	token := c.PostForm("token")

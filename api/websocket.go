@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"time"
 )
 
 var (
@@ -62,6 +63,14 @@ func WsServer(w http.ResponseWriter, r *http.Request) {
 		//}
 		if data, err = conn.ReadMessage(); err != nil {
 			goto ERR
+		} else {
+			fmt.Println("sending message...")
+			var message = new(chat.Message)
+			message.Username = "yufoo1"
+			message.Data = string(data)
+			message.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
+			fmt.Println(message)
+			chat.InsertOneMessage(message)
 		}
 		//if err = conn.WriteMessage(data); err != nil {
 		//	goto ERR

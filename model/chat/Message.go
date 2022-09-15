@@ -7,7 +7,7 @@ import (
 )
 
 type Message struct {
-	Username  string `bson:"username"`
+	Username  string `bson:"sourceUsername"`
 	Data      string `bson:"data"`
 	CreatedAt string `bson:"createdAt"`
 }
