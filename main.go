@@ -11,8 +11,9 @@ import (
 func main() {
 	global.Router = gin.New()
 	global.Router.Use(utils.Cors())
-	utils.ConnectMysqlDatabase()
-	utils.ConnectMongodbDatabase()
+	utils.ConnectMysq()
+	utils.ConnectMongodb()
+	utils.ConnectRedis()
 	router.RoutesInitialize()
 	err := global.Router.Run(":8080")
 	if err != nil {
