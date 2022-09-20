@@ -108,6 +108,8 @@ func UsernameLogin(c *gin.Context) {
 				"password": password,
 				"token":    token,
 			})
+			global.RedisDb.Set(c, "username", username, 1200)
+			global.RedisDb.Set(c, "token", token, 1200)
 			fmt.Println("login successfully!")
 		}
 	}
@@ -128,6 +130,7 @@ func Logout(c *gin.Context) {
 		fmt.Println("exec failed, ", err)
 		return
 	} else {
+		global.RedisDb.Del(c, "username", "token")
 		fmt.Println("logout successfully!")
 	}
 }

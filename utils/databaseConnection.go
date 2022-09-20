@@ -47,11 +47,10 @@ func ConnectMongodb() {
 }
 
 func ConnectRedis() {
-	c := redis.NewClient(&redis.Options{
+	global.RedisDb = redis.NewClient(&redis.Options{
 		Addr:     global.RedisAddr,
 		Password: global.RedisPassword,
 		DB:       global.RedisDatabase,
 	})
 	fmt.Println("connect redis successfully")
-	global.RedisDb = c
 }
