@@ -21,4 +21,9 @@ func RoutesInitialize() {
 	{
 		chat.GET("/ws", api.WsHandler)
 	}
+
+	deal := global.Router.Group("/deal")
+	{
+		deal.POST("/upload-new-textbook", api.UploadNewTextbook)
+	}
 }
