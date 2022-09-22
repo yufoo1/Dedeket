@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func ConnectMysq() {
+func ConnectMysql() {
 	loginReq := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s",
 		global.MysqlUsername,
 		global.MysqlPassword,
@@ -20,7 +20,7 @@ func ConnectMysq() {
 		global.MysqlDatabase)
 	database, err := sqlx.Open("mysql", loginReq)
 	if err != nil {
-		fmt.Println("open mysql failed,", err)
+		fmt.Println("connect mysql failed,", err)
 		return
 	} else {
 		fmt.Println("connect mysql successfully")

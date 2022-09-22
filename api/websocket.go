@@ -1,6 +1,7 @@
 package api
 
 import (
+	"E-TexSub-backend/global"
 	"E-TexSub-backend/model/chat"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -22,11 +23,6 @@ var connMap = make(map[string]*chat.Connection) // 用户通过token连接websoc
 // 单独发送消息时，用户需要同时传入接收方的username
 
 func WsHandler(c *gin.Context) {
-	fmt.Println("connecting...")
-	WsServer(c.Writer, c.Request)
-}
-
-func WsServer(w http.ResponseWriter, r *http.Request) {
 	var (
 		//websocket 长连接
 		wsConn *websocket.Conn
@@ -35,14 +31,14 @@ func WsServer(w http.ResponseWriter, r *http.Request) {
 		data   []byte
 	)
 
-	token := r.URL.Query().Get("token")
+	token := c.Request.URL.Query().Get("token")
 	//var usernameArr []string
 	//err = global.MysqlDb.Select(&usernameArr, "select username from user_token where token=?", token)
 	//sourceUsername := usernameArr[0]
 	//targetUsername := r.URL.Query().Get("targetUsername")
 
 	//header中添加Upgrade:websocket
-	if wsConn, err = upgrade.Upgrade(w, r, nil); err != nil {
+	if wsConn, err = upgrade.Upgrade(c.Writer, c.Request, nil); err != nil {
 		return
 	}
 
@@ -66,7 +62,7 @@ func WsServer(w http.ResponseWriter, r *http.Request) {
 		} else {
 			fmt.Println("sending message...")
 			var message = new(chat.Message)
-			message.Username = "yufoo1"
+			message.Username, _ = global.RedisDb.Get(c, "username").Result()
 			message.Data = string(data)
 			message.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
 			fmt.Println(message)

@@ -4,7 +4,7 @@ var MysqlUsername = "root"
 var MysqlPassword = "20011206"
 var MysqlHost = "47.104.235.207"
 var MysqlPort = 3306
-var MysqlDatabase = "e-texsub"
+var MysqlDatabase = "e_texsub"
 
 var MongodbUsername = "root"
 var MongodbPassword = "20011206"

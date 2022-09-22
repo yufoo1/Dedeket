@@ -11,7 +11,7 @@ import (
 func main() {
 	global.Router = gin.New()
 	global.Router.Use(utils.Cors())
-	utils.ConnectMysq()
+	utils.ConnectMysql()
 	utils.ConnectMongodb()
 	utils.ConnectRedis()
 	router.RoutesInitialize()
