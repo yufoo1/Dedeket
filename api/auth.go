@@ -108,8 +108,8 @@ func UsernameLogin(c *gin.Context) {
 				"password": password,
 				"token":    token,
 			})
-			global.RedisDb.Set(c, "username", username, 1200)
-			global.RedisDb.Set(c, "token", token, 1200)
+			global.RedisDb.Set(c, "username", username, time.Minute*15)
+			global.RedisDb.Set(c, "token", token, time.Minute*15)
 			fmt.Println("login successfully!")
 		}
 	}
