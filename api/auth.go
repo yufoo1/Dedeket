@@ -136,9 +136,13 @@ func Logout(c *gin.Context) {
 }
 
 func SelectToken(c *gin.Context) {
-	token := c.PostForm("token")
+	token, err := global.RedisDb.Get(c, "token").Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	var usernameArr []string
-	err := global.MysqlDb.Select(&usernameArr, "select username from user_login_token where token=?", token)
+	err = global.MysqlDb.Select(&usernameArr, "select username from user_login_token where token=?", token)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
