@@ -26,5 +26,9 @@ func GetFilteredTextBook(c *gin.Context) {
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
+	} else {
+		c.JSON(200, gin.H{
+			"data": textbookArr,
+		})
 	}
 }

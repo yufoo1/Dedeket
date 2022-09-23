@@ -16,7 +16,7 @@ type Textbook struct {
 }
 
 func InsertTextbook(textbook *Textbook) {
-	_, err := global.MysqlDb.Exec("insert into textbook(name, writer, class, description, createdAt, createBy)values(?, ?, ?, ?, ?, ?)",
+	_, err := global.MysqlDb.Exec("insert into textbook(name, writer, class, description, createdAt, createdBy)values(?, ?, ?, ?, ?, ?)",
 		textbook.Name, textbook.Writer, textbook.Class, textbook.Description, textbook.CreatedAt, textbook.CreatedBy)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
