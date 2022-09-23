@@ -25,5 +25,6 @@ func RoutesInitialize() {
 	deal := global.Router.Group("/deal")
 	{
 		deal.POST("/upload-new-textbook", api.UploadNewTextbook)
+		deal.POST("/get-filtered-textbook", api.GetFilteredTextBook)
 	}
 }

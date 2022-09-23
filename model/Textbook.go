@@ -6,12 +6,13 @@ import (
 )
 
 type Textbook struct {
-	Name        string `json:"name"`
-	Writer      string `json:"writer"`
-	Class       string `json:"class"`
-	Description string `json:"description"`
-	CreatedAt   string `json:"createdAt"`
-	CreatedBy   string `json:"createdBy"`
+	Id          int    `json:"id" db:"id"`
+	Name        string `json:"name" db:"name"`
+	Writer      string `json:"writer" db:"writer"`
+	Class       string `json:"class" db:"class"`
+	Description string `json:"description" db:"description"`
+	CreatedAt   string `json:"createdAt" db:"createdAt"`
+	CreatedBy   string `json:"createdBy" db:"createdBy"`
 }
 
 func InsertTextbook(textbook *Textbook) {
