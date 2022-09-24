@@ -44,14 +44,35 @@ func UploadNewTextbook(c *gin.Context) {
 func GetFilteredTextBook(c *gin.Context) {
 	bookNameKeyword := c.PostForm("bookNameKeyword")
 	classKeyword := c.PostForm("classKeyword")
+	pageIndex, err := strconv.ParseInt(c.PostForm("pageIndex"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+	}
+	pageSize, err := strconv.ParseInt(c.PostForm("pageSize"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+	}
 	var textbookArr []model.Textbook
-	err := global.MysqlDb.Select(&textbookArr, "select * from textbook where bookName like '%"+bookNameKeyword+"%' and class like '%"+classKeyword+"%'")
+	err = global.MysqlDb.Select(&textbookArr, "select * from textbook where bookName like '%"+bookNameKeyword+"%' and class like '%"+classKeyword+"%'")
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
 	} else {
+		var upperLimit int64
+		if int64(len(textbookArr)) < pageIndex*pageSize {
+			upperLimit = int64(len(textbookArr))
+		} else {
+			upperLimit = pageIndex * pageSize
+		}
 		c.JSON(200, gin.H{
-			"data": textbookArr,
+			"data":   textbookArr[(pageIndex-1)*pageSize : upperLimit],
+			"status": true,
 		})
 	}
 }
