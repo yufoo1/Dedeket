@@ -26,5 +26,6 @@ func RoutesInitialize() {
 	{
 		deal.POST("/upload-new-textbook", api.UploadNewTextbook)
 		deal.POST("/get-filtered-textbook", api.GetFilteredTextBook)
+		deal.POST("/add-textbook-to-shopping-trolley", api.AddTextbookToShoppingTrolley)
 	}
 }
