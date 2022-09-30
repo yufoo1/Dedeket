@@ -1,4 +1,4 @@
-package model
+package deal
 
 import (
 	"E-TexSub-backend/global"

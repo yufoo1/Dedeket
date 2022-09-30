@@ -2,7 +2,7 @@ package api
 
 import (
 	"E-TexSub-backend/global"
-	"E-TexSub-backend/model"
+	"E-TexSub-backend/model/deal"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"strconv"
@@ -10,7 +10,7 @@ import (
 )
 
 func UploadNewTextbook(c *gin.Context) {
-	textbook := new(model.Textbook)
+	textbook := new(deal.Textbook)
 	textbook.BookName = c.PostForm("bookName")
 	textbook.Writer = c.PostForm("writer")
 	textbook.Class = c.PostForm("class")
@@ -35,7 +35,7 @@ func UploadNewTextbook(c *gin.Context) {
 	} else {
 		textbook.Seller = seller
 	}
-	model.InsertTextbook(textbook)
+	deal.InsertTextbook(textbook)
 	c.JSON(200, gin.H{
 		"status": true,
 	})
@@ -58,7 +58,7 @@ func GetFilteredTextBook(c *gin.Context) {
 			"status": false,
 		})
 	}
-	var textbookArr []model.Textbook
+	var textbookArr []deal.Textbook
 	err = global.MysqlDb.Select(&textbookArr, "select * from textbook where bookName like '%"+bookNameKeyword+"%' and class like '%"+classKeyword+"%'")
 	if err != nil {
 		fmt.Println("exec failed, ", err)
@@ -79,7 +79,7 @@ func GetFilteredTextBook(c *gin.Context) {
 
 func AddTextbookToShoppingTrolley(c *gin.Context) {
 	textbookId := c.PostForm("textbookId")
-	subscriptionNumber, _ := strconv.ParseInt(c.PostForm("subscriptionNumber"), 10, 64)
+	subscriptionNumber, _ := strconv.ParseInt(c.PostForm("subscriptionNumber"), 10, 32)
 	token := c.PostForm("token")
 	var username string
 	var usernameArr []string
@@ -124,7 +124,7 @@ func AddTextbookToShoppingTrolley(c *gin.Context) {
 			username,
 			textbookId,
 			subscriptionNumber,
-			1,
+			1, // 1代表教材存在且剩余量足够，2代表教材已下架，3代表教材未下架但是剩余量不足
 			time.Now().Format("2006-01-02 15:04:05"))
 		if err != nil {
 			c.JSON(200, gin.H{
@@ -141,5 +141,11 @@ func AddTextbookToShoppingTrolley(c *gin.Context) {
 }
 
 func AddCommentToTextbook(c *gin.Context) {
-
+	fmt.Println("sending comment...")
+	var textbookComment = new(deal.TextbookComment)
+	textbookComment.TextbookId = c.PostForm("textbookId")
+	textbookComment.Sender = c.PostForm("sender")
+	textbookComment.Comment = c.PostForm("comment")
+	textbookComment.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
+	deal.InsertOneTextbookComment(textbookComment)
 }
