@@ -112,14 +112,14 @@ func AddTextbookToShoppingTrolley(c *gin.Context) {
 		})
 		return
 	} else {
-		remain = int(int64(remain) - subscriptionNumber)
-		_, err = global.MysqlDb.Exec("update textbook set remain=? where id=?", remain, textbookId)
-		if err != nil {
-			c.JSON(200, gin.H{
-				"status": false,
-			})
-			return
-		}
+		//remain = int(int64(remain) - subscriptionNumber)
+		//_, err = global.MysqlDb.Exec("update textbook set remain=? where id=?", remain, textbookId)
+		//if err != nil {
+		//	c.JSON(200, gin.H{
+		//		"status": false,
+		//	})
+		//	return
+		//}
 		_, err = global.MysqlDb.Exec("insert into user_subscription(username, textbookId, subscriptionNumber, status, createdAt) values (?, ?, ?, ?, ?)",
 			username,
 			textbookId,
@@ -138,4 +138,8 @@ func AddTextbookToShoppingTrolley(c *gin.Context) {
 			fmt.Println("Add textbook successfully!")
 		}
 	}
+}
+
+func AddCommentToTextbook(c *gin.Context) {
+
 }
