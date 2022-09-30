@@ -149,6 +149,9 @@ func AddTextbookToShoppingTrolley(c *gin.Context) {
 			}
 		} else {
 			newSubscriptionNumber := subscriptionNumberArr[0] + int(subscriptionNumber)
+			if newSubscriptionNumber < 0 {
+				newSubscriptionNumber = 0
+			}
 			_, err = global.MysqlDb.Exec("update user_subscription set subscriptionNumber=? where textbookId=?", newSubscriptionNumber, textbookId)
 			if err != nil {
 				c.JSON(200, gin.H{
