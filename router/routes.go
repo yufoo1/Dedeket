@@ -28,5 +28,6 @@ func RoutesInitialize() {
 		deal.POST("/get-filtered-textbook", api.GetFilteredTextBook)
 		deal.POST("/add-textbook-to-shopping-trolley", api.AddTextbookToShoppingTrolley)
 		deal.POST("/add-comment-to-textbook", api.AddCommentToTextbook)
+		deal.POST("/get-textbook-comment", api.GetTextbookComment)
 	}
 }

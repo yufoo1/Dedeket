@@ -5,6 +5,7 @@ import (
 	"E-TexSub-backend/model/deal"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 	"strconv"
 	"time"
 )
@@ -148,4 +149,34 @@ func AddCommentToTextbook(c *gin.Context) {
 	textbookComment.Comment = c.PostForm("comment")
 	textbookComment.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
 	deal.InsertOneTextbookComment(textbookComment)
+}
+
+func GetTextbookComment(c *gin.Context) {
+	textbookId := c.PostForm("textbookId")
+	var textbookComment []deal.TextbookComment
+	cursor, err := global.MongoDb.Collection("user_textbook_comment").Find(c, bson.M{"textbookId": textbookId})
+	if err != nil {
+		fmt.Println("found error")
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+	} else {
+		for cursor.Next(c) {
+			tc := &deal.TextbookComment{}
+			err = cursor.Decode(tc)
+			if err != nil {
+				fmt.Println("decode error")
+				c.JSON(200, gin.H{
+					"status": false,
+				})
+			} else {
+				textbookComment = append(textbookComment, *tc)
+			}
+		}
+		fmt.Println(textbookComment)
+		c.JSON(200, gin.H{
+			"status": true,
+			"data":   textbookComment,
+		})
+	}
 }
