@@ -123,22 +123,42 @@ func AddTextbookToShoppingTrolley(c *gin.Context) {
 		//	})
 		//	return
 		//}
-		_, err = global.MysqlDb.Exec("insert into user_subscription(username, textbookId, subscriptionNumber, status, createdAt) values (?, ?, ?, ?, ?)",
-			username,
-			textbookId,
-			subscriptionNumber,
-			1, // 1代表教材存在且剩余量足够，2代表教材已下架，3代表教材未下架但是剩余量不足
-			time.Now().Format("2006-01-02 15:04:05"))
+		var subscriptionNumberArr []int
+		err := global.MysqlDb.Select(&subscriptionNumberArr, "select subscriptionNumber from user_subscription where textbookId=?", textbookId)
 		if err != nil {
-			c.JSON(200, gin.H{
-				"status": false,
-			})
+			fmt.Println("exec failed, ", err)
 			return
+		}
+		if len(subscriptionNumberArr) == 0 {
+			_, err = global.MysqlDb.Exec("insert into user_subscription(username, textbookId, subscriptionNumber, status, createdAt) values (?, ?, ?, ?, ?)",
+				username,
+				textbookId,
+				subscriptionNumber,
+				1, // 1代表教材存在且剩余量足够，2代表教材已下架，3代表教材未下架但是剩余量不足
+				time.Now().Format("2006-01-02 15:04:05"))
+			if err != nil {
+				c.JSON(200, gin.H{
+					"status": false,
+				})
+				return
+			} else {
+				c.JSON(200, gin.H{
+					"status": true,
+				})
+				fmt.Println("Add textbook successfully!")
+			}
 		} else {
-			c.JSON(200, gin.H{
-				"status": true,
-			})
-			fmt.Println("Add textbook successfully!")
+			newSubscriptionNumber := subscriptionNumberArr[0] + int(subscriptionNumber)
+			_, err = global.MysqlDb.Exec("update user_subscription set subscriptionNumber=? where textbookId=?", newSubscriptionNumber, textbookId)
+			if err != nil {
+				c.JSON(200, gin.H{
+					"status": false,
+				})
+				fmt.Println(err)
+				return
+			} else {
+				fmt.Println("update successfully!")
+			}
 		}
 	}
 }
