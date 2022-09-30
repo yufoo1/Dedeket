@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"math"
 	"strconv"
 	"time"
 )
@@ -74,6 +75,7 @@ func GetFilteredTextBook(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"data":   textbookArr[(pageIndex-1)*pageSize : upperLimit],
 			"status": true,
+			"total":  math.Ceil(float64(len(textbookArr)) / float64(int(pageSize))),
 		})
 	}
 }
@@ -149,6 +151,9 @@ func AddCommentToTextbook(c *gin.Context) {
 	textbookComment.Comment = c.PostForm("comment")
 	textbookComment.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
 	deal.InsertOneTextbookComment(textbookComment)
+	c.JSON(200, gin.H{
+		"status": true,
+	})
 }
 
 func GetTextbookComment(c *gin.Context) {
