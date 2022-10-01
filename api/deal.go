@@ -215,3 +215,25 @@ func GetTextbookComment(c *gin.Context) {
 		})
 	}
 }
+
+func DeleteUploadedTextbook(c *gin.Context) {
+	textbookId := c.PostForm("textbookId")
+	_, err := global.MysqlDb.Exec("delete from textbook where id=?", textbookId)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	_, err = global.MysqlDb.Exec("update user_subscription set status=2 where textbookId=? and status=1", textbookId)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	deal.DeleteTextbookAllComment(textbookId)
+	fmt.Println("delete successfully!")
+}

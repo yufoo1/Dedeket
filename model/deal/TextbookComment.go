@@ -4,6 +4,7 @@ import (
 	"E-TexSub-backend/global"
 	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type TextbookComment struct {
@@ -19,6 +20,13 @@ func (TextbookComment) CollectionName() string {
 
 func InsertOneTextbookComment(textbookComment *TextbookComment) {
 	_, err := global.MongoDb.Collection(TextbookComment{}.CollectionName()).InsertOne(context.Background(), textbookComment)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func DeleteTextbookAllComment(textbookId string) {
+	_, err := global.MongoDb.Collection(TextbookComment{}.CollectionName()).DeleteMany(context.Background(), bson.M{"textbookId": textbookId})
 	if err != nil {
 		fmt.Println(err)
 	}
