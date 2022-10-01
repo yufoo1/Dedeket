@@ -235,5 +235,8 @@ func DeleteUploadedTextbook(c *gin.Context) {
 		return
 	}
 	deal.DeleteTextbookAllComment(textbookId)
+	c.JSON(200, gin.H{
+		"status": true,
+	})
 	fmt.Println("delete successfully!")
 }
