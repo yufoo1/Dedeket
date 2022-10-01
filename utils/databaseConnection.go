@@ -31,19 +31,23 @@ func ConnectMysql() {
 func ConnectMongodb() {
 	c, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	uri := fmt.Sprintf("mongodb://%s:%d",
+	uri := fmt.Sprintf(
+		"mongodb://%s:%s@%s:%d/dedeket?authMechanism=SCRAM-SHA-256&ssl=false",
+		global.MongodbUsername,
+		global.MongodbPassword,
 		global.MongodbHost,
-		global.MongodbPort)
-	client, err := mongo.Connect(c, options.Client().SetAuth(options.Credential{
-		Username: global.MongodbUsername,
-		Password: global.MongodbPassword,
-	}).ApplyURI(uri))
+		global.MongodbPort,
+	)
+	client, err := mongo.Connect(
+		c,
+		options.Client().ApplyURI(uri),
+	)
 	if err != nil {
 		fmt.Println(err)
 	} else {
 		fmt.Println("connect mongodb successfully")
 	}
-	global.MongoDb = client.Database("chat")
+	global.MongoDb = client.Database(global.MongodbDatabase)
 }
 
 func ConnectRedis() {
