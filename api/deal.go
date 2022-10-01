@@ -240,3 +240,26 @@ func DeleteUploadedTextbook(c *gin.Context) {
 	})
 	fmt.Println("delete successfully!")
 }
+
+func UpdateUploadedTextbook(c *gin.Context) {
+	textbookId := c.PostForm("textbookId")
+	bookName := c.PostForm("bookName")
+	writer := c.PostForm("writer")
+	class := c.PostForm("class")
+	description := c.PostForm("description")
+	college := c.PostForm("college")
+	total, _ := strconv.ParseInt(c.PostForm("total"), 10, 64)
+	remain, _ := strconv.ParseInt(c.PostForm("remain"), 10, 64)
+	_, err := global.MysqlDb.Exec("update textbook set bookName=?, writer=?, class=?, description=?, college=?, total=?, remain=? where id=?", bookName, writer, class, description, college, total, remain, textbookId)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"status": true,
+		})
+	}
+
+}
