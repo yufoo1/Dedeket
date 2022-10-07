@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"E-TexSub-backend/global"
+	"Dedeket/global"
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"

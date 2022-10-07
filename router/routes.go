@@ -1,8 +1,8 @@
 package router
 
 import (
-	"E-TexSub-backend/api"
-	"E-TexSub-backend/global"
+	"Dedeket/api"
+	"Dedeket/global"
 )
 
 func RoutesInitialize() {

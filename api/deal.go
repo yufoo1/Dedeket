@@ -1,8 +1,8 @@
 package api
 
 import (
-	"E-TexSub-backend/global"
-	"E-TexSub-backend/model/deal"
+	"Dedeket/global"
+	"Dedeket/model/deal"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"

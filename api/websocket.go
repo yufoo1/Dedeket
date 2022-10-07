@@ -1,8 +1,8 @@
 package api
 
 import (
-	"E-TexSub-backend/global"
-	"E-TexSub-backend/model/chat"
+	"Dedeket/global"
+	"Dedeket/model/chat"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"

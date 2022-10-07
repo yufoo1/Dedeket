@@ -1,9 +1,9 @@
 package main
 
 import (
-	"E-TexSub-backend/global"
-	"E-TexSub-backend/router"
-	"E-TexSub-backend/utils"
+	"Dedeket/global"
+	"Dedeket/router"
+	"Dedeket/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )

@@ -1,7 +1,7 @@
 package deal
 
 import (
-	"E-TexSub-backend/global"
+	"Dedeket/global"
 	"context"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"

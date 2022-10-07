@@ -1,4 +1,4 @@
-module E-TexSub-backend
+module Dedeket
 
 go 1.18
 

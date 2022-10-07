@@ -1,7 +1,7 @@
 package chat
 
 import (
-	"E-TexSub-backend/global"
+	"Dedeket/global"
 	"context"
 	"fmt"
 )
