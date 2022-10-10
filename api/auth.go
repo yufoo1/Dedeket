@@ -163,6 +163,22 @@ func SelectToken(c *gin.Context) {
 	}
 }
 
+func verifyToken(token string) (valid bool, id int) {
+	var usernameArr []string
+	var idArr []int
+	err := global.MysqlDb.Select(&usernameArr, "select username from user_login_token where token=?", token)
+	if err != nil {
+		fmt.Println("exec failed, ", err)
+		return false, -1
+	}
+	err = global.MysqlDb.Select(&idArr, "select id from user_login where username=?", usernameArr[0])
+	if err != nil {
+		fmt.Println("exec failed, ", err)
+		return false, -1
+	}
+	return true, idArr[0]
+}
+
 func createClient() (_result *dysmsapi20170525.Client, _err error) {
 	var id = "LTAI5tSqFZoMAcxgrBJpaVcU"
 	var secret = "0A5WIsfdUAqNBJZ1bG6p5PIvUBVrZL"

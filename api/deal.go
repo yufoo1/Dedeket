@@ -261,5 +261,49 @@ func UpdateUploadedTextbook(c *gin.Context) {
 			"status": true,
 		})
 	}
+}
 
+func TopUp(c *gin.Context) {
+	token := c.PostForm("token")
+	amount, _ := strconv.ParseInt(c.PostForm("amount"), 10, 64)
+	valid, userId := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	} else {
+		var balanceArr []int
+		err := global.MysqlDb.Select(&balanceArr, "select balance from user_balance where userId=? ", userId)
+		if err != nil {
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		}
+		if len(balanceArr) == 0 {
+			_, err := global.MysqlDb.Exec("insert into user_balance(userId, balance) values (?, ?)", userId, amount)
+			if err != nil {
+				c.JSON(200, gin.H{
+					"status": false,
+				})
+				return
+			}
+			c.JSON(200, gin.H{
+				"status": true,
+			})
+		} else {
+			balance := int(int64(balanceArr[0]) + amount)
+			_, err = global.MysqlDb.Exec("update user_balance set balance=? where userId=?", balance, userId)
+			if err != nil {
+				c.JSON(200, gin.H{
+					"status": false,
+				})
+				return
+			}
+			c.JSON(200, gin.H{
+				"status": true,
+			})
+		}
+	}
 }

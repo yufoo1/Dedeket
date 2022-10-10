@@ -31,5 +31,6 @@ func RoutesInitialize() {
 		deal.POST("/get-textbook-comment", api.GetTextbookComment)
 		deal.POST("/delete-uploaded-textbook", api.DeleteUploadedTextbook)
 		deal.POST("/update-uploaded-textbook", api.UpdateUploadedTextbook)
+		deal.POST("/top-up", api.TopUp)
 	}
 }
