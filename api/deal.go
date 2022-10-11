@@ -394,7 +394,7 @@ func tryPayOneSubscription(unpaidSubscriptionId int) (payableRet bool, textbookI
 	return true, textbookId, remain, subscriptionNumber
 }
 
-func payOneSubscription(c *gin.Context) {
+func PayOneSubscription(c *gin.Context) {
 	token := c.PostForm("token")
 	valid, userId := verifyToken(token)
 	if !valid {
@@ -415,7 +415,7 @@ func payOneSubscription(c *gin.Context) {
 	})
 }
 
-func payAllSubscription(c *gin.Context) {
+func PayAllSubscription(c *gin.Context) {
 	token := c.PostForm("token")
 	valid, userId := verifyToken(token)
 	if !valid {
