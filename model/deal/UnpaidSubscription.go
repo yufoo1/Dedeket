@@ -1,10 +1,10 @@
 package deal
 
 type UnpaidSubscription struct {
-	Id                 int    `json:"id"`
-	Username           string `json:"username"`
-	TextbookId         string `json:"textbookId"`
-	SubscriptionNumber int    `json:"subscriptionNumber"`
-	Status             bool   `json:"status"`
-	CreatedAt          string `json:"createdAt"`
+	Id                 int    `json:"id" db:"id"`
+	Username           string `json:"username" db:"username"`
+	TextbookId         int    `json:"textbookId" db:"textbookId"`
+	SubscriptionNumber int    `json:"subscriptionNumber" db:"subscriptionNumber"`
+	Status             int    `json:"status" db:"status"`
+	CreatedAt          string `json:"createdAt" db:"createdAt"`
 }

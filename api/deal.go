@@ -18,6 +18,7 @@ func UploadNewTextbook(c *gin.Context) {
 	textbook.Class = c.PostForm("class")
 	textbook.Description = c.PostForm("description")
 	textbook.College = c.PostForm("college")
+	textbook.Price, _ = strconv.ParseInt(c.PostForm("price"), 10, 64)
 	total, err := strconv.ParseInt(c.PostForm("total"), 10, 64)
 	if err != nil {
 		c.JSON(200, gin.H{
@@ -315,7 +316,7 @@ func TopUp(c *gin.Context) {
 }
 
 func payOneSubscriptionHandler(unpaidSubscriptionId int, userId int) (statusRet bool) {
-	payable, textbookId, remain, subscriptionNumber := tryPayOneSubscription(unpaidSubscriptionId)
+	payable, textbookId, remain, subscriptionNumber, balance := tryPayOneSubscription(unpaidSubscriptionId)
 	if payable {
 		// 删除user_trolley_subscription中的相关记录
 		_, err := global.MysqlDb.Exec("delete from user_trolley_subscription where id=?", unpaidSubscriptionId)
@@ -324,10 +325,13 @@ func payOneSubscriptionHandler(unpaidSubscriptionId int, userId int) (statusRet 
 		}
 		// 更新textbook中教材的剩余量
 		_, err = global.MysqlDb.Exec("update textbook set remain=? where id=?", remain-subscriptionNumber, textbookId)
+		// 更新user_balance余额
+		_, err = global.MysqlDb.Exec("update user_balance set balance=? where userId=?", balance, userId)
 		// 更新user_trolley_subscription中其他未支付订单的状态
 		var unpaidSubscriptionArr []deal.UnpaidSubscription
-		err = global.MysqlDb.Select(&unpaidSubscriptionArr, "select textbookId from user_trolley_subscription where id=?", unpaidSubscriptionId)
+		err = global.MysqlDb.Select(&unpaidSubscriptionArr, "select * from user_trolley_subscription where id=?", unpaidSubscriptionId)
 		if err != nil {
+			fmt.Println(err)
 			return false
 		}
 		for i := 0; i < len(unpaidSubscriptionArr); i++ {
@@ -347,56 +351,63 @@ func payOneSubscriptionHandler(unpaidSubscriptionId int, userId int) (statusRet 
 	}
 }
 
-func tryPayOneSubscription(unpaidSubscriptionId int) (payableRet bool, textbookIdRet int, remainRet int, subscriptionNumberRet int) {
+func tryPayOneSubscription(unpaidSubscriptionId int) (payableRet bool, textbookIdRet int, remainRet int, subscriptionNumberRet int, BalanceRet int) {
 	var statusArr []int
 	err := global.MysqlDb.Select(&statusArr, "select status from user_trolley_subscription where id=?", unpaidSubscriptionId)
 	if err != nil || len(statusArr) == 0 || statusArr[0] != 1 {
-		return false, -1, -1, -1
+		return false, -1, -1, -1, -1
 	}
 	var textbookIdArr []int
 	err = global.MysqlDb.Select(&textbookIdArr, "select textbookId from user_trolley_subscription where id=?", unpaidSubscriptionId)
 	if err != nil || len(textbookIdArr) == 0 {
-		return false, -1, -1, -1
+		return false, -1, -1, -1, -1
 	}
+
 	textbookId := textbookIdArr[0]
 	var subscriptionNumberArr []int
 	err = global.MysqlDb.Select(&subscriptionNumberArr, "select subscriptionNumber from user_trolley_subscription where id=?", unpaidSubscriptionId)
 	if err != nil || len(subscriptionNumberArr) == 0 {
-		return false, -1, -1, -1
+		return false, -1, -1, -1, -1
 	}
 	subscriptionNumber := subscriptionNumberArr[0]
 	var remainArr []int
 	err = global.MysqlDb.Select(&remainArr, "select remain from textbook where id=?", textbookId)
 	if err != nil || len(remainArr) == 0 {
-		return false, -1, -1, -1
+		return false, -1, -1, -1, -1
 	}
 	remain := remainArr[0]
 	if remain < subscriptionNumber {
-		return false, -1, -1, -1
+		return false, -1, -1, -1, -1
 	}
 	var priceArr []int
 	err = global.MysqlDb.Select(&priceArr, "select price from textbook where id=?", textbookId)
 	if err != nil || len(priceArr) == 0 {
-		return false, -1, -1, -1
+		return false, -1, -1, -1, -1
 	}
 	price := priceArr[0]
+	var usernameArr []string
+	err = global.MysqlDb.Select(&usernameArr, "select username from user_trolley_subscription where id=?", unpaidSubscriptionId)
+	if err != nil || len(usernameArr) == 0 {
+		return false, -1, -1, -1, -1
+	}
+	username := usernameArr[0]
 	var userIdArr []int
-	err = global.MysqlDb.Select(&userIdArr, "select userId from user_trolley_subscription where id=?", unpaidSubscriptionId)
+	err = global.MysqlDb.Select(&userIdArr, "select id from user_login where username=?", username)
 	if err != nil || len(userIdArr) == 0 {
-		return false, -1, -1, -1
+		return false, -1, -1, -1, -1
 	}
 	userId := userIdArr[0]
 	totalPrice := price * subscriptionNumber
 	var balanceArr []int
 	err = global.MysqlDb.Select(&balanceArr, "select balance from user_balance where userId=?", userId)
 	if err != nil || len(balanceArr) == 0 {
-		return false, -1, -1, -1
+		return false, -1, -1, -1, -1
 	}
 	balance := balanceArr[0]
 	if balance < totalPrice {
-		return false, -1, -1, -1
+		return false, -1, -1, -1, -1
 	}
-	return true, textbookId, remain, subscriptionNumber
+	return true, textbookId, remain, subscriptionNumber, balance - totalPrice
 }
 
 func PayOneSubscription(c *gin.Context) {
@@ -430,13 +441,14 @@ func PayAllSubscription(c *gin.Context) {
 		return
 	}
 	var usernameArr []string
-	err := global.MysqlDb.Select(&usernameArr, "select from user_login where id=?", userId)
+	err := global.MysqlDb.Select(&usernameArr, "select username from user_login where id=?", userId)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"status": false,
 		})
 		return
 	}
+
 	username := usernameArr[0]
 	var subscriptionIdArr []int
 	err = global.MysqlDb.Select(&subscriptionIdArr, "select id from user_trolley_subscription where username=?", username)
@@ -447,7 +459,7 @@ func PayAllSubscription(c *gin.Context) {
 		return
 	}
 	for i := 0; i < len(subscriptionIdArr); i++ {
-		payable, _, _, _ := tryPayOneSubscription(subscriptionIdArr[i])
+		payable, _, _, _, _ := tryPayOneSubscription(subscriptionIdArr[i])
 		if !payable {
 			c.JSON(200, gin.H{
 				"status": false,
@@ -494,7 +506,7 @@ func GetPaidSubscription(c *gin.Context) {
 		clientPaidSubscription.Status = paidSubscriptionArr[i].Status
 		textbookId := paidSubscriptionArr[i].TextbookId
 		var textbookArr []deal.Textbook
-		err := global.MysqlDb.Select(&textbookArr, "select * from textbook where textbookId=?", textbookId)
+		err := global.MysqlDb.Select(&textbookArr, "select * from textbook where id=?", textbookId)
 		if err != nil {
 			c.JSON(200, gin.H{
 				"status": false,
@@ -700,4 +712,37 @@ func ConfirmReceipt(c *gin.Context) {
 		"status": true,
 	})
 	return
+}
+
+func GetTrolleyTextbook(c *gin.Context) {
+	//token := c.PostForm("token")
+	//valid, userId := verifyToken(token)
+	//if !valid {
+	//	c.JSON(200, gin.H{
+	//		"status": false,
+	//	})
+	//	return
+	//}
+}
+
+func DeleteTrolleyTextbook(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, _ := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	unpaidSubscriptionId := c.PostForm("unpaidSubscriptionId")
+	_, err := global.MysqlDb.Exec("delete from user_trolley_subscription where id=?", unpaidSubscriptionId)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"status": true,
+	})
 }

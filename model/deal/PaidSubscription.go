@@ -1,12 +1,12 @@
 package deal
 
 type PaidSubscription struct {
-	Id                 int    `json:"id"`
-	UserId             string `json:"userId"`
-	TextbookId         string `json:"textbookId"`
-	SubscriptionNumber int    `json:"subscriptionNumber"`
-	Status             int    `json:"status"`
-	CreatedAt          string `json:"createdAt"`
+	Id                 int    `json:"id" db:"id"`
+	UserId             string `json:"userId" db:"userId"`
+	TextbookId         string `json:"textbookId" db:"textbookId"`
+	SubscriptionNumber int    `json:"subscriptionNumber" db:"subscriptionNumber"`
+	Status             int    `json:"status" db:"status"`
+	CreatedAt          string `json:"createdAt" db:"createdAt"`
 }
 
 type BuyerPaidSubscription struct {

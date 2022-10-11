@@ -39,5 +39,6 @@ func RoutesInitialize() {
 		deal.POST("/get-received-subscription", api.GetReceivedSubscription)
 		deal.POST("/deliver-textbook", api.DeliverTextbook)
 		deal.POST("/confirm-receipt", api.ConfirmReceipt)
+		deal.POST("/delete-trolley-textbook", api.DeleteTrolleyTextbook)
 	}
 }

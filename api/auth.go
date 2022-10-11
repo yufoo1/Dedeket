@@ -167,7 +167,7 @@ func verifyToken(token string) (valid bool, id int) {
 	var usernameArr []string
 	var idArr []int
 	err := global.MysqlDb.Select(&usernameArr, "select username from user_login_token where token=?", token)
-	if err != nil {
+	if err != nil || len(usernameArr) == 0 {
 		fmt.Println("exec failed, ", err)
 		return false, -1
 	}
