@@ -52,6 +52,7 @@ func GetFilteredTextBook(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status": false,
 		})
+		return
 	}
 	pageSize, err := strconv.ParseInt(c.PostForm("pageSize"), 10, 64)
 	if err != nil {
@@ -59,11 +60,15 @@ func GetFilteredTextBook(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status": false,
 		})
+		return
 	}
 	var textbookArr []deal.Textbook
 	err = global.MysqlDb.Select(&textbookArr, "select * from textbook where bookName like '%"+bookNameKeyword+"%' and class like '%"+classKeyword+"%'")
 	if err != nil {
 		fmt.Println("exec failed, ", err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
 		return
 	} else {
 		var upperLimit int64
@@ -517,4 +522,62 @@ func GetPaidSubscription(c *gin.Context) {
 		"paidSubscription": paidSubscriptionArr[(pageIndex-1)*pageSize : upperLimit],
 		"total":            math.Ceil(float64(len(clientPaidSubscriptionArr)) / float64(int(pageSize))),
 	})
+}
+
+func GetFilteredUploadedTextbook(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, userId := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	bookNameKeyword := c.PostForm("bookNameKeyword")
+	classKeyword := c.PostForm("classKeyword")
+	pageIndex, err := strconv.ParseInt(c.PostForm("pageIndex"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	pageSize, err := strconv.ParseInt(c.PostForm("pageSize"), 10, 64)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	var usernameArr []string
+	err = global.MysqlDb.Select(&usernameArr, "select username from user_login where id=?", userId)
+	if err != nil || len(usernameArr) == 0 {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	seller := usernameArr[0]
+	var textbookArr []deal.Textbook
+	err = global.MysqlDb.Select(&textbookArr, "select * from textbook where bookName like '%"+bookNameKeyword+"%' and class like '%"+classKeyword+"%' "+"seller="+seller)
+	if err != nil {
+		fmt.Println("exec failed, ", err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	} else {
+		var upperLimit int64
+		if int64(len(textbookArr)) < pageIndex*pageSize {
+			upperLimit = int64(len(textbookArr))
+		} else {
+			upperLimit = pageIndex * pageSize
+		}
+		c.JSON(200, gin.H{
+			"data":   textbookArr[(pageIndex-1)*pageSize : upperLimit],
+			"status": true,
+			"total":  math.Ceil(float64(len(textbookArr)) / float64(int(pageSize))),
+		})
+	}
 }
