@@ -308,3 +308,158 @@ func TopUp(c *gin.Context) {
 		}
 	}
 }
+
+func payOneSubscriptionHandler(unpaidSubscriptionId int, userId int) (statusRet bool) {
+	payable, textbookId, remain, subscriptionNumber := tryPayOneSubscription(unpaidSubscriptionId)
+	if payable {
+		// 删除user_trolley_subscription中的相关记录
+		_, err := global.MysqlDb.Exec("delete from user_trolley_subscription where id=?", unpaidSubscriptionId)
+		if err != nil {
+			return false
+		}
+		// 更新textbook中教材的剩余量
+		_, err = global.MysqlDb.Exec("update textbook set remain=? where id=?", remain-subscriptionNumber, textbookId)
+		// 更新user_trolley_subscription中其他未支付订单的状态
+		var unpaidSubscriptionArr []deal.UnpaidSubscription
+		err = global.MysqlDb.Select(&unpaidSubscriptionArr, "select textbookId from user_trolley_subscription where id=?", unpaidSubscriptionId)
+		if err != nil {
+			return false
+		}
+		for i := 0; i < len(unpaidSubscriptionArr); i++ {
+			if remain-subscriptionNumber < unpaidSubscriptionArr[i].SubscriptionNumber {
+				_, err = global.MysqlDb.Exec("update user_trolley_subscription set status=3 where id=?", unpaidSubscriptionArr[i].Id)
+			}
+		}
+		// 将订单加入user_paid_subscription
+		_, err = global.MysqlDb.Exec("insert into user_paid_subscription(userId, textbookId, subscriptionNumber, createdAt) values (?, ?, ?, ?)",
+			userId,
+			textbookId,
+			subscriptionNumber,
+			time.Now().Format("2006-01-02 15:04:05"))
+		return true
+	} else {
+		return false
+	}
+}
+
+func tryPayOneSubscription(unpaidSubscriptionId int) (payableRet bool, textbookIdRet int, remainRet int, subscriptionNumberRet int) {
+	var statusArr []int
+	err := global.MysqlDb.Select(&statusArr, "select status from user_trolley_subscription where id=?", unpaidSubscriptionId)
+	if err != nil || len(statusArr) == 0 || statusArr[0] != 1 {
+		return false, -1, -1, -1
+	}
+	var textbookIdArr []int
+	err = global.MysqlDb.Select(&textbookIdArr, "select textbookId from user_trolley_subscription where id=?", unpaidSubscriptionId)
+	if err != nil || len(textbookIdArr) == 0 {
+		return false, -1, -1, -1
+	}
+	textbookId := textbookIdArr[0]
+	var subscriptionNumberArr []int
+	err = global.MysqlDb.Select(&subscriptionNumberArr, "select subscriptionNumber from user_trolley_subscription where id=?", unpaidSubscriptionId)
+	if err != nil || len(subscriptionNumberArr) == 0 {
+		return false, -1, -1, -1
+	}
+	subscriptionNumber := subscriptionNumberArr[0]
+	var remainArr []int
+	err = global.MysqlDb.Select(&remainArr, "select remain from textbook where id=?", textbookId)
+	if err != nil || len(remainArr) == 0 {
+		return false, -1, -1, -1
+	}
+	remain := remainArr[0]
+	if remain < subscriptionNumber {
+		return false, -1, -1, -1
+	}
+	var priceArr []int
+	err = global.MysqlDb.Select(&priceArr, "select price from textbook where id=?", textbookId)
+	if err != nil || len(priceArr) == 0 {
+		return false, -1, -1, -1
+	}
+	price := priceArr[0]
+	var userIdArr []int
+	err = global.MysqlDb.Select(&userIdArr, "select userId from user_trolley_subscription where id=?", unpaidSubscriptionId)
+	if err != nil || len(userIdArr) == 0 {
+		return false, -1, -1, -1
+	}
+	userId := userIdArr[0]
+	totalPrice := price * subscriptionNumber
+	var balanceArr []int
+	err = global.MysqlDb.Select(&balanceArr, "select balance from user_balance where userId=?", userId)
+	if err != nil || len(balanceArr) == 0 {
+		return false, -1, -1, -1
+	}
+	balance := balanceArr[0]
+	if balance < totalPrice {
+		return false, -1, -1, -1
+	}
+	return true, textbookId, remain, subscriptionNumber
+}
+
+func payOneSubscription(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, userId := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	unpaidSubscriptionId, _ := strconv.ParseInt(c.PostForm("unpaidSubscriptionId"), 10, 64)
+	if !payOneSubscriptionHandler(int(unpaidSubscriptionId), userId) {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"status": true,
+	})
+}
+
+func payAllSubscription(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, userId := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	var usernameArr []string
+	err := global.MysqlDb.Select(&usernameArr, "select from user_login where id=?", userId)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	username := usernameArr[0]
+	var subscriptionIdArr []int
+	err = global.MysqlDb.Select(&subscriptionIdArr, "select id from user_trolley_subscription where username=?", username)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	for i := 0; i < len(subscriptionIdArr); i++ {
+		payable, _, _, _ := tryPayOneSubscription(subscriptionIdArr[i])
+		if !payable {
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		}
+	}
+	for i := 0; i < len(subscriptionIdArr); i++ {
+		status := payOneSubscriptionHandler(subscriptionIdArr[i], userId)
+		if !status {
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		}
+	}
+	c.JSON(200, gin.H{
+		"status": true,
+	})
+}
