@@ -16,11 +16,12 @@ type Textbook struct {
 	College     string `json:"college" db:"college"`
 	Remain      int64  `json:"remain" db:"remain"`
 	Total       int64  `json:"total" db:"total"`
+	Price       int64  `json:"price" db:"price"`
 }
 
 func InsertTextbook(textbook *Textbook) {
-	_, err := global.MysqlDb.Exec("insert into textbook(bookName, writer, class, description, createdAt, seller, total, remain, college)values(?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		textbook.BookName, textbook.Writer, textbook.Class, textbook.Description, textbook.CreatedAt, textbook.Seller, textbook.Total, textbook.Total, textbook.College)
+	_, err := global.MysqlDb.Exec("insert into textbook(bookName, writer, class, description, createdAt, seller, total, remain, college, price)values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		textbook.BookName, textbook.Writer, textbook.Class, textbook.Description, textbook.CreatedAt, textbook.Seller, textbook.Total, textbook.Total, textbook.College, textbook.Price)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return

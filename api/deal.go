@@ -124,7 +124,7 @@ func AddTextbookToShoppingTrolley(c *gin.Context) {
 		//	return
 		//}
 		var subscriptionNumberArr []int
-		err := global.MysqlDb.Select(&subscriptionNumberArr, "select subscriptionNumber from user_subscription where textbookId=?", textbookId)
+		err := global.MysqlDb.Select(&subscriptionNumberArr, "select subscriptionNumber from user_trolley_subscription where textbookId=?", textbookId)
 		if err != nil {
 			fmt.Println("exec failed, ", err)
 			return
@@ -136,7 +136,7 @@ func AddTextbookToShoppingTrolley(c *gin.Context) {
 				})
 				return
 			}
-			_, err = global.MysqlDb.Exec("insert into user_subscription(username, textbookId, subscriptionNumber, status, createdAt) values (?, ?, ?, ?, ?)",
+			_, err = global.MysqlDb.Exec("insert into user_trolley_subscription(username, textbookId, subscriptionNumber, status, createdAt) values (?, ?, ?, ?, ?)",
 				username,
 				textbookId,
 				subscriptionNumber,
@@ -156,9 +156,9 @@ func AddTextbookToShoppingTrolley(c *gin.Context) {
 		} else {
 			newSubscriptionNumber := subscriptionNumberArr[0] + int(subscriptionNumber)
 			if newSubscriptionNumber <= 0 {
-				_, err = global.MysqlDb.Exec("delete from user_subscription where textbookId=?", textbookId)
+				_, err = global.MysqlDb.Exec("delete from user_trolley_subscription where textbookId=?", textbookId)
 			} else {
-				_, err = global.MysqlDb.Exec("update user_subscription set subscriptionNumber=? where textbookId=?", newSubscriptionNumber, textbookId)
+				_, err = global.MysqlDb.Exec("update user_trolley_subscription set subscriptionNumber=? where textbookId=?", newSubscriptionNumber, textbookId)
 				if err != nil {
 					c.JSON(200, gin.H{
 						"status": false,
@@ -226,7 +226,7 @@ func DeleteUploadedTextbook(c *gin.Context) {
 		})
 		return
 	}
-	_, err = global.MysqlDb.Exec("update user_subscription set status=2 where textbookId=? and status=1", textbookId)
+	_, err = global.MysqlDb.Exec("update user_trolley_subscription set status=2 where textbookId=? and status=1", textbookId)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(200, gin.H{
@@ -250,7 +250,8 @@ func UpdateUploadedTextbook(c *gin.Context) {
 	college := c.PostForm("college")
 	total, _ := strconv.ParseInt(c.PostForm("total"), 10, 64)
 	remain, _ := strconv.ParseInt(c.PostForm("remain"), 10, 64)
-	_, err := global.MysqlDb.Exec("update textbook set bookName=?, writer=?, class=?, description=?, college=?, total=?, remain=? where id=?", bookName, writer, class, description, college, total, remain, textbookId)
+	price, _ := strconv.ParseInt(c.PostForm("price"), 10, 64)
+	_, err := global.MysqlDb.Exec("update textbook set bookName=?, writer=?, class=?, description=?, college=?, total=?, remain=?, price=? where id=?", bookName, writer, class, description, college, total, remain, textbookId, price)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(200, gin.H{
