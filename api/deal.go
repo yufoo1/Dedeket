@@ -335,8 +335,8 @@ func payOneSubscriptionHandler(unpaidSubscriptionId int, userId int) (statusRet 
 				_, err = global.MysqlDb.Exec("update user_trolley_subscription set status=3 where id=?", unpaidSubscriptionArr[i].Id)
 			}
 		}
-		// 将订单加入user_paid_subscription
-		_, err = global.MysqlDb.Exec("insert into user_paid_subscription(userId, textbookId, subscriptionNumber, createdAt) values (?, ?, ?, ?)",
+		// 将订单加入user_paid_subscription status为0代码此订单未被商家处理，商家发货后更新为1，买家收货后更新为2
+		_, err = global.MysqlDb.Exec("insert into user_paid_subscription(userId, textbookId, subscriptionNumber, createdAt, status) values (?, ?, ?, ?, 0)",
 			userId,
 			textbookId,
 			subscriptionNumber,
@@ -486,11 +486,12 @@ func GetPaidSubscription(c *gin.Context) {
 		})
 		return
 	}
-	var clientPaidSubscriptionArr []deal.ClientPaidSubscription
+	var clientPaidSubscriptionArr []deal.BuyerPaidSubscription
 	for i := 0; i < len(paidSubscriptionArr); i++ {
-		var clientPaidSubscription deal.ClientPaidSubscription
+		var clientPaidSubscription deal.BuyerPaidSubscription
 		clientPaidSubscription.SubscriptionNumber = paidSubscriptionArr[i].SubscriptionNumber
 		clientPaidSubscription.CreatedAt = paidSubscriptionArr[i].CreatedAt
+		clientPaidSubscription.Status = paidSubscriptionArr[i].Status
 		textbookId := paidSubscriptionArr[i].TextbookId
 		var textbookArr []deal.Textbook
 		err := global.MysqlDb.Select(&textbookArr, "select * from textbook where textbookId=?", textbookId)
@@ -580,4 +581,76 @@ func GetFilteredUploadedTextbook(c *gin.Context) {
 			"total":  math.Ceil(float64(len(textbookArr)) / float64(int(pageSize))),
 		})
 	}
+}
+
+func GetReceivedSubscription(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, userId := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	status := c.PostForm("status")
+	var paidSubscriptionArr []deal.PaidSubscription
+	// 找出所有seller为当前用户的已支付订单，status给定
+	err := global.MysqlDb.Select(&paidSubscriptionArr, "select * from user_paid_subscription where userId=? and status=? and exists(select * from user_paid_subscription, textbook, user_login where user_paid_subscription.textbook=textbook.id and textbook.seller=user_login.username)", userId, status)
+	if err != nil {
+		fmt.Println("exec failed, ", err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	var sellerPaidSubscriptionArr []deal.SellerPaidSubscription
+	for i := 0; i < len(paidSubscriptionArr); i++ {
+		var sellerPaidSubscription deal.SellerPaidSubscription
+		sellerPaidSubscription.SubscriptionNumber = paidSubscriptionArr[i].SubscriptionNumber
+		sellerPaidSubscription.CreatedAt = paidSubscriptionArr[i].CreatedAt
+		textbookId := paidSubscriptionArr[i].TextbookId
+		var textbookArr []deal.Textbook
+		err = global.MysqlDb.Select(&textbookArr, "select * from textbook where id=?", textbookId)
+		if err != nil || len(textbookArr) == 0 {
+			fmt.Println("exec failed, ", err)
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		}
+		textbook := textbookArr[0]
+		sellerPaidSubscription.BookName = textbook.BookName
+		sellerPaidSubscription.College = textbook.College
+		sellerPaidSubscription.Class = textbook.Class
+		sellerPaidSubscription.Description = textbook.Description
+		sellerPaidSubscription.Writer = textbook.Writer
+		sellerPaidSubscriptionArr = append(sellerPaidSubscriptionArr, sellerPaidSubscription)
+	}
+	pageIndex, err := strconv.ParseInt(c.PostForm("pageIndex"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	pageSize, err := strconv.ParseInt(c.PostForm("pageSize"), 10, 64)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	var upperLimit int64
+	if int64(len(sellerPaidSubscriptionArr)) < pageIndex*pageSize {
+		upperLimit = int64(len(sellerPaidSubscriptionArr))
+	} else {
+		upperLimit = pageIndex * pageSize
+	}
+	c.JSON(200, gin.H{
+		"data":   sellerPaidSubscriptionArr[(pageIndex-1)*pageSize : upperLimit],
+		"status": true,
+		"total":  math.Ceil(float64(len(sellerPaidSubscriptionArr)) / float64(int(pageSize))),
+	})
+
 }
