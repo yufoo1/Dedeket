@@ -624,6 +624,7 @@ func GetReceivedSubscription(c *gin.Context) {
 		sellerPaidSubscription.Class = textbook.Class
 		sellerPaidSubscription.Description = textbook.Description
 		sellerPaidSubscription.Writer = textbook.Writer
+		sellerPaidSubscription.Id = paidSubscriptionArr[i].Id
 		sellerPaidSubscriptionArr = append(sellerPaidSubscriptionArr, sellerPaidSubscription)
 	}
 	pageIndex, err := strconv.ParseInt(c.PostForm("pageIndex"), 10, 64)
@@ -653,4 +654,50 @@ func GetReceivedSubscription(c *gin.Context) {
 		"total":  math.Ceil(float64(len(sellerPaidSubscriptionArr)) / float64(int(pageSize))),
 	})
 
+}
+
+func DeliverTextbook(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, _ := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	subscriptionId := c.PostForm("subscriptionId")
+	_, err := global.MysqlDb.Exec("update user_paid_subscription set status=? where id=?", 1, subscriptionId)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"status": true,
+	})
+	return
+}
+
+func ConfirmReceipt(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, _ := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	subscriptionId := c.PostForm("subscriptionId")
+	_, err := global.MysqlDb.Exec("update user_paid_subscription set status=? where id=?", 2, subscriptionId)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"status": true,
+	})
+	return
 }

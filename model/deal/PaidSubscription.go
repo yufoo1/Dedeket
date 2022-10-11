@@ -22,6 +22,7 @@ type BuyerPaidSubscription struct {
 }
 
 type SellerPaidSubscription struct {
+	Id                 int    `json:"id"`
 	BookName           string `json:"bookName"`
 	SubscriptionNumber int    `json:"subscriptionNumber"`
 	Writer             string `json:"writer" db:"writer"`
