@@ -463,3 +463,58 @@ func PayAllSubscription(c *gin.Context) {
 		"status": true,
 	})
 }
+
+func GetPaidSubscription(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, userId := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	var paidSubscriptionArr []deal.PaidSubscription
+	err := global.MysqlDb.Select(&paidSubscriptionArr, "select * from user_paid_subscription where userId=?", userId)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	var clientPaidSubscriptionArr []deal.ClientPaidSubscription
+	for i := 0; i < len(paidSubscriptionArr); i++ {
+		var clientPaidSubscription deal.ClientPaidSubscription
+		clientPaidSubscription.SubscriptionNumber = paidSubscriptionArr[i].SubscriptionNumber
+		clientPaidSubscription.CreatedAt = paidSubscriptionArr[i].CreatedAt
+		textbookId := paidSubscriptionArr[i].TextbookId
+		var textbookArr []deal.Textbook
+		err := global.MysqlDb.Select(&textbookArr, "select * from textbook where textbookId=?", textbookId)
+		if err != nil {
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		}
+		textbook := textbookArr[0]
+		clientPaidSubscription.BookName = textbook.BookName
+		clientPaidSubscription.Writer = textbook.Writer
+		clientPaidSubscription.Class = textbook.Class
+		clientPaidSubscription.Description = textbook.Description
+		clientPaidSubscription.Description = textbook.Seller
+		clientPaidSubscription.College = textbook.College
+		clientPaidSubscriptionArr = append(clientPaidSubscriptionArr, clientPaidSubscription)
+	}
+	pageIndex, _ := strconv.ParseInt(c.PostForm("pageIndex"), 10, 64)
+	pageSize, _ := strconv.ParseInt(c.PostForm("pageSize"), 10, 64)
+	var upperLimit int64
+	if int64(len(clientPaidSubscriptionArr)) < pageIndex*pageSize {
+		upperLimit = int64(len(clientPaidSubscriptionArr))
+	} else {
+		upperLimit = pageIndex * pageSize
+	}
+	c.JSON(200, gin.H{
+		"status":           true,
+		"paidSubscription": paidSubscriptionArr[(pageIndex-1)*pageSize : upperLimit],
+		"total":            math.Ceil(float64(len(clientPaidSubscriptionArr)) / float64(int(pageSize))),
+	})
+}
