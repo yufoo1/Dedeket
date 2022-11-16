@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"io"
 	"math"
+	"os"
 	"strconv"
 	"time"
 )
@@ -23,12 +25,33 @@ func UploadNewTextbook(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		err = global.OssBucket.PutObjectFromFile("./tmp/"+photo.Filename, "./tmp/"+photo.Filename)
 		if err != nil {
 			fmt.Println(err)
+		} else {
+			_, _err := os.Stat(".tmp")
+			if _err != nil {
+				os.Mkdir(".tmp", os.ModePerm)
+			}
+			dst := ".tmp/" + photo.Filename
+			src, error := photo.Open()
+			if error != nil {
+				fmt.Println(error)
+			}
+			defer src.Close()
+			fmt.Println(dst)
+			out, error := os.Create(dst)
+			if error != nil {
+				fmt.Println(error)
+			}
+			defer out.Close()
+			_, _ = io.Copy(out, src)
+			err = global.OssBucket.PutObjectFromFile("tmp/"+photo.Filename, ".tmp/"+photo.Filename)
+			os.Remove(".tmp/" + photo.Filename)
 		}
 	}
-	c.SaveUploadedFile(photo, "./tmp/"+photo.Filename)
+	if err != nil {
+		fmt.Println(err)
+	}
 	total, err := strconv.ParseInt(c.PostForm("total"), 10, 64)
 	if err != nil {
 		c.JSON(200, gin.H{
