@@ -19,6 +19,16 @@ func UploadNewTextbook(c *gin.Context) {
 	textbook.Description = c.PostForm("description")
 	textbook.College = c.PostForm("college")
 	textbook.Price, _ = strconv.ParseInt(c.PostForm("price"), 10, 64)
+	photo, err := c.FormFile("photo")
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		err = global.OssBucket.PutObjectFromFile("./tmp/"+photo.Filename, "./tmp/"+photo.Filename)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	c.SaveUploadedFile(photo, "./tmp/"+photo.Filename)
 	total, err := strconv.ParseInt(c.PostForm("total"), 10, 64)
 	if err != nil {
 		c.JSON(200, gin.H{
@@ -29,15 +39,16 @@ func UploadNewTextbook(c *gin.Context) {
 		textbook.Total = total
 	}
 	textbook.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
-	seller, err := global.RedisDb.Get(c, "username").Result()
-	if err != nil {
-		c.JSON(200, gin.H{
-			"status": false,
-		})
-		return
-	} else {
-		textbook.Seller = seller
-	}
+	textbook.Seller = "yufoo1"
+	//seller, err := global.RedisDb.Get(c, "username").Result()
+	//if err != nil {
+	//	c.JSON(200, gin.H{
+	//		"status": false,
+	//	})
+	//	return
+	//} else {
+	//	textbook.Seller = seller
+	//}
 	deal.InsertTextbook(textbook)
 	c.JSON(200, gin.H{
 		"status": true,

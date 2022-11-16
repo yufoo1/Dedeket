@@ -14,6 +14,7 @@ func main() {
 	utils.ConnectMysql()
 	utils.ConnectMongodb()
 	utils.ConnectRedis()
+	utils.ConnectOss()
 	router.RoutesInitialize()
 	err := global.Router.Run(":8080")
 	if err != nil {

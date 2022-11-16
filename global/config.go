@@ -15,3 +15,8 @@ var MongodbDatabase = "dedeket"
 var RedisAddr = "localhost:6379"
 var RedisPassword = ""
 var RedisDatabase = 0
+
+var OssEndpoint = "oss-cn-hangzhou.aliyuncs.com"
+var OssAccessKeyId = "LTAI5tQSv1DgUygXdiooQMdr"
+var OssAccessKeySecret = "uqdFUbgeA5Aoifkj0Xp4Nsnik4jzKO"
+var OssBucketName = "dedeket"

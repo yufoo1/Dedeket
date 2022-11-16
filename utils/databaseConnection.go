@@ -4,6 +4,7 @@ import (
 	"Dedeket/global"
 	"context"
 	"fmt"
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -57,4 +58,18 @@ func ConnectRedis() {
 		DB:       global.RedisDatabase,
 	})
 	fmt.Println("connect redis successfully")
+}
+
+func ConnectOss() {
+	client, err := oss.New(global.OssEndpoint, global.OssAccessKeyId, global.OssAccessKeySecret)
+	if err != nil {
+		fmt.Println(err)
+	}
+	bucket, err := client.Bucket(global.OssBucketName)
+	if err != nil {
+		fmt.Println(err)
+	}
+	global.OssBucket = bucket
+	fmt.Println("connect oss successfully")
+
 }
