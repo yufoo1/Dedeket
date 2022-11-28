@@ -51,8 +51,7 @@ func UploadNewTextbook(c *gin.Context) {
 				fmt.Println(err)
 			}
 			var photoIdArr []int
-			err := global.MysqlDb.Select(&photoIdArr, "select id from textbook_photo")
-
+			err := global.MysqlDb.Select(&photoIdArr, "select id from textbook_photo order by id desc")
 			if err != nil {
 				fmt.Println("exec failed, ", err)
 				return
@@ -64,7 +63,7 @@ func UploadNewTextbook(c *gin.Context) {
 					})
 					return
 				} else {
-					photoId = len(photoIdArr)
+					photoId = photoIdArr[0]
 				}
 			}
 			err = global.OssBucket.PutObjectFromFile("tmp/"+strconv.Itoa(photoId)+".png", ".tmp/"+photo.Filename)
