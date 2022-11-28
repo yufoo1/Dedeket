@@ -17,6 +17,7 @@ type Textbook struct {
 	Remain      int64  `json:"remain" db:"remain"`
 	Total       int64  `json:"total" db:"total"`
 	Price       int64  `json:"price" db:"price"`
+	PhotoIdArr  []int  `json:"photoIdArr"`
 }
 
 func InsertTextbook(textbook *Textbook) {

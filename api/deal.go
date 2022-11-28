@@ -22,6 +22,7 @@ func UploadNewTextbook(c *gin.Context) {
 	textbook.College = c.PostForm("college")
 	textbook.Price, _ = strconv.ParseInt(c.PostForm("price"), 10, 64)
 	photo, err := c.FormFile("photo")
+	var photoId int
 	if err != nil {
 		fmt.Println(err)
 	} else {
@@ -50,8 +51,8 @@ func UploadNewTextbook(c *gin.Context) {
 				fmt.Println(err)
 			}
 			var photoIdArr []int
-			var photoId int
-			err := global.MysqlDb.Select(&photoIdArr, "select id from textbook_photo where photoName=?", photo.Filename)
+			err := global.MysqlDb.Select(&photoIdArr, "select id from textbook_photo")
+
 			if err != nil {
 				fmt.Println("exec failed, ", err)
 				return
@@ -63,10 +64,9 @@ func UploadNewTextbook(c *gin.Context) {
 					})
 					return
 				} else {
-					photoId = photoIdArr[0]
+					photoId = len(photoIdArr)
 				}
 			}
-
 			err = global.OssBucket.PutObjectFromFile("tmp/"+strconv.Itoa(photoId)+".png", ".tmp/"+photo.Filename)
 			os.Remove(".tmp/" + photo.Filename)
 			os.Remove(".tmp/")
@@ -97,6 +97,14 @@ func UploadNewTextbook(c *gin.Context) {
 	//	textbook.Seller = seller
 	//}
 	deal.InsertTextbook(textbook)
+	var textbookIdArr []int
+	err = global.MysqlDb.Select(&textbookIdArr, "select id from textbook order by id desc")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	textbookId := textbookIdArr[0]
+	_, err = global.MysqlDb.Exec("update textbook_photo set textbookId=? where id=?", textbookId, photoId)
 	c.JSON(200, gin.H{
 		"status": true,
 	})
@@ -130,6 +138,13 @@ func GetFilteredTextBook(c *gin.Context) {
 		})
 		return
 	} else {
+		for i := 0; i < len(textbookArr); i++ {
+			err := global.MysqlDb.Select(&(textbookArr[i].PhotoIdArr), "select id from textbook_photo where textbookId=?", textbookArr[i].Id)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		}
 		var upperLimit int64
 		if int64(len(textbookArr)) < pageIndex*pageSize {
 			upperLimit = int64(len(textbookArr))
