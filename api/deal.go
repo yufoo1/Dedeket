@@ -66,8 +66,10 @@ func UploadNewTextbook(c *gin.Context) {
 					photoId = photoIdArr[0]
 				}
 			}
-			err = global.OssBucket.PutObjectFromFile("tmp/"+photo.Filename, ".tmp/"+string(photoId))
+
+			err = global.OssBucket.PutObjectFromFile("tmp/"+strconv.Itoa(photoId)+".png", ".tmp/"+photo.Filename)
 			os.Remove(".tmp/" + photo.Filename)
+			os.Remove(".tmp/")
 		}
 	}
 	if err != nil {
