@@ -45,12 +45,34 @@ func UploadNewTextbook(c *gin.Context) {
 			}
 			defer out.Close()
 			_, _ = io.Copy(out, src)
-			err = global.OssBucket.PutObjectFromFile("tmp/"+photo.Filename, ".tmp/"+photo.Filename)
+			_, err = global.MysqlDb.Exec("insert into textbook_photo(photoName) values (?)", photo.Filename)
+			if err != nil {
+				fmt.Println(err)
+			}
+			var photoIdArr []int
+			var photoId int
+			err := global.MysqlDb.Select(&photoIdArr, "select id from textbook_photo where photoName=?", photo.Filename)
+			if err != nil {
+				fmt.Println("exec failed, ", err)
+				return
+			} else {
+				if len(photoIdArr) == 0 {
+					fmt.Println("not found!")
+					c.JSON(200, gin.H{
+						"status": false,
+					})
+					return
+				} else {
+					photoId = photoIdArr[0]
+				}
+			}
+			err = global.OssBucket.PutObjectFromFile("tmp/"+photo.Filename, ".tmp/"+string(photoId))
 			os.Remove(".tmp/" + photo.Filename)
 		}
 	}
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 	total, err := strconv.ParseInt(c.PostForm("total"), 10, 64)
 	if err != nil {
