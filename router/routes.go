@@ -41,4 +41,9 @@ func RoutesInitialize() {
 		deal.POST("/confirm-receipt", api.ConfirmReceipt)
 		deal.POST("/delete-trolley-textbook", api.DeleteTrolleyTextbook)
 	}
+
+	info := global.Router.Group("/info")
+	{
+		info.POST("/upload-head-portrait", api.UploadHeadPortrait)
+	}
 }

@@ -26,54 +26,46 @@ func UploadNewTextbook(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 	} else {
+		_, _err := os.Stat(".tmp")
+		if _err != nil {
+			os.Mkdir(".tmp", os.ModePerm)
+		}
+		dst := ".tmp/" + photo.Filename
+		src, error := photo.Open()
+		if error != nil {
+			fmt.Println(error)
+		}
+		defer src.Close()
+		fmt.Println(dst)
+		out, error := os.Create(dst)
+		if error != nil {
+			fmt.Println(error)
+		}
+		defer out.Close()
+		_, _ = io.Copy(out, src)
+		_, err = global.MysqlDb.Exec("insert into textbook_photo(photoName) values (?)", photo.Filename)
 		if err != nil {
 			fmt.Println(err)
+		}
+		var photoIdArr []int
+		err := global.MysqlDb.Select(&photoIdArr, "select id from textbook_photo order by id desc limit 1")
+		if err != nil {
+			fmt.Println("exec failed, ", err)
+			return
 		} else {
-			_, _err := os.Stat(".tmp")
-			if _err != nil {
-				os.Mkdir(".tmp", os.ModePerm)
-			}
-			dst := ".tmp/" + photo.Filename
-			src, error := photo.Open()
-			if error != nil {
-				fmt.Println(error)
-			}
-			defer src.Close()
-			fmt.Println(dst)
-			out, error := os.Create(dst)
-			if error != nil {
-				fmt.Println(error)
-			}
-			defer out.Close()
-			_, _ = io.Copy(out, src)
-			_, err = global.MysqlDb.Exec("insert into textbook_photo(photoName) values (?)", photo.Filename)
-			if err != nil {
-				fmt.Println(err)
-			}
-			var photoIdArr []int
-			err := global.MysqlDb.Select(&photoIdArr, "select id from textbook_photo order by id desc")
-			if err != nil {
-				fmt.Println("exec failed, ", err)
+			if len(photoIdArr) == 0 {
+				fmt.Println("not found!")
+				c.JSON(200, gin.H{
+					"status": false,
+				})
 				return
 			} else {
-				if len(photoIdArr) == 0 {
-					fmt.Println("not found!")
-					c.JSON(200, gin.H{
-						"status": false,
-					})
-					return
-				} else {
-					photoId = photoIdArr[0]
-				}
+				photoId = photoIdArr[0]
 			}
-			err = global.OssBucket.PutObjectFromFile("tmp/"+strconv.Itoa(photoId)+".png", ".tmp/"+photo.Filename)
-			os.Remove(".tmp/" + photo.Filename)
-			os.Remove(".tmp/")
 		}
-	}
-	if err != nil {
-		fmt.Println(err)
-		return
+		err = global.OssBucket.PutObjectFromFile("tmp/"+strconv.Itoa(photoId)+".png", ".tmp/"+photo.Filename)
+		os.Remove(".tmp/" + photo.Filename)
+		os.Remove(".tmp/")
 	}
 	total, err := strconv.ParseInt(c.PostForm("total"), 10, 64)
 	if err != nil {
