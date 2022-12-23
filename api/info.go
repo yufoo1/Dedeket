@@ -6,12 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"os"
-	"strconv"
 )
 
 func UploadHeadPortrait(c *gin.Context) {
 	token := c.PostForm("token")
-	valid, userId := verifyToken(token)
+	valid, _ := verifyToken(token)
 	if !valid {
 		fmt.Println("error")
 		return
@@ -40,7 +39,24 @@ func UploadHeadPortrait(c *gin.Context) {
 	}
 	defer out.Close()
 	_, _ = io.Copy(out, src)
-	err = global.OssBucket.PutObjectFromFile("head_portrait/"+strconv.Itoa(userId)+".png", ".tmp/"+photo.Filename)
+	var username string
+	var usernameArr []string
+	err = global.MysqlDb.Select(&usernameArr, "select username from user_login_token where token=?", token)
+	if err != nil {
+		fmt.Println("exec failed, ", err)
+		return
+	} else {
+		if len(usernameArr) == 0 {
+			fmt.Println("not found!")
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		} else {
+			username = usernameArr[0]
+		}
+	}
+	err = global.OssBucket.PutObjectFromFile("head_portrait/"+username+".png", ".tmp/"+photo.Filename)
 	os.Remove(".tmp/" + photo.Filename)
 	os.Remove(".tmp/")
 	c.JSON(200, gin.H{
