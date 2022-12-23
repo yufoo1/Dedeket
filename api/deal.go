@@ -5,6 +5,7 @@ import (
 	"Dedeket/model/deal"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/xuri/excelize/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"io"
 	"math"
@@ -148,6 +149,55 @@ func GetFilteredTextBook(c *gin.Context) {
 			"total":  math.Ceil(float64(len(textbookArr)) / float64(int(pageSize))),
 		})
 	}
+}
+
+func GetFilteredTextbookByExcel(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, _ := verifyToken(token)
+	if !valid {
+		fmt.Println("error")
+		return
+	}
+	excel, err := c.FormFile("excel")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	_, _err := os.Stat(".tmp")
+	if _err != nil {
+		os.Mkdir(".tmp", os.ModePerm)
+	}
+	dst := ".tmp/" + excel.Filename
+	src, error := excel.Open()
+	if error != nil {
+		fmt.Println(error)
+		return
+	}
+	defer src.Close()
+	fmt.Println(dst)
+	out, error := os.Create(dst)
+	if error != nil {
+		fmt.Println(error)
+		return
+	}
+	defer out.Close()
+	_, _ = io.Copy(out, src)
+	f, err := excelize.OpenFile(dst)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	rows, err := f.GetRows("学生课表")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for _, row := range rows {
+		for _, colCell := range row {
+			fmt.Println(colCell, "t")
+		}
+	}
+
 }
 
 func AddTextbookToShoppingTrolley(c *gin.Context) {

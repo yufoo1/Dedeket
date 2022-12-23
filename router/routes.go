@@ -40,6 +40,7 @@ func RoutesInitialize() {
 		deal.POST("/deliver-textbook", api.DeliverTextbook)
 		deal.POST("/confirm-receipt", api.ConfirmReceipt)
 		deal.POST("/delete-trolley-textbook", api.DeleteTrolleyTextbook)
+		deal.POST("/get-filtered-textbook-by-excel", api.GetFilteredTextbookByExcel)
 	}
 
 	info := global.Router.Group("/info")
