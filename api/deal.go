@@ -105,7 +105,7 @@ func UploadNewTextbook(c *gin.Context) {
 func GetFilteredTextBook(c *gin.Context) {
 	bookNameKeyword := c.PostForm("bookNameKeyword")
 	classKeyword := c.PostForm("classKeyword")
-	seller := c.PostForm("seller")
+	sellerKeyword := c.PostForm("sellerKeyword")
 	pageIndex, err := strconv.ParseInt(c.PostForm("pageIndex"), 10, 64)
 	if err != nil {
 		fmt.Println(err)
@@ -123,7 +123,7 @@ func GetFilteredTextBook(c *gin.Context) {
 		return
 	}
 	var textbookArr []deal.Textbook
-	err = global.MysqlDb.Select(&textbookArr, "select * from textbook where bookName like '%"+bookNameKeyword+"%' and class like '%"+classKeyword+"%'"+" and seller="+seller)
+	err = global.MysqlDb.Select(&textbookArr, "select * from textbook where bookName like '%"+bookNameKeyword+"%' and class like '%"+classKeyword+"%'"+" and seller like '%"+sellerKeyword+"%'")
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		c.JSON(200, gin.H{
