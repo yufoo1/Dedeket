@@ -292,8 +292,25 @@ func AddTextbookToShoppingTrolley(c *gin.Context) {
 				})
 				return
 			} else {
+				var trolleyTextbook []deal.TrolleyTextbook
+				err = global.MysqlDb.Select(&trolleyTextbook, "select user_trolley_subscription.id, user_trolley_subscription.textbookId, user_trolley_subscription.username, user_trolley_subscription.subscriptionNumber, user_trolley_subscription.status, user_trolley_subscription.createdAt, textbook.remain, textbook.price, textbook.bookName from user_trolley_subscription, textbook where textbook.id=? and user_trolley_subscription.textbookId=textbook.id", textbookId)
+				for i := 0; i < len(trolleyTextbook); i++ {
+					err := global.MysqlDb.Select(&(trolleyTextbook[i].PhotoIdArr), "select id from textbook_photo where textbookId=?", trolleyTextbook[i].TextbookId)
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+				}
+				if err != nil {
+					c.JSON(200, gin.H{
+						"status": false,
+					})
+					fmt.Println(err)
+					return
+				}
 				c.JSON(200, gin.H{
 					"status": true,
+					"data":   trolleyTextbook,
 				})
 				fmt.Println("Add textbook successfully!")
 			}
@@ -310,6 +327,26 @@ func AddTextbookToShoppingTrolley(c *gin.Context) {
 					fmt.Println(err)
 					return
 				} else {
+					var trolleyTextbook []deal.TrolleyTextbook
+					err = global.MysqlDb.Select(&trolleyTextbook, "select user_trolley_subscription.id, user_trolley_subscription.textbookId, user_trolley_subscription.username, user_trolley_subscription.subscriptionNumber, user_trolley_subscription.status, user_trolley_subscription.createdAt, textbook.remain, textbook.price, textbook.bookName from user_trolley_subscription, textbook where textbook.id=? and user_trolley_subscription.textbookId=textbook.id", textbookId)
+					for i := 0; i < len(trolleyTextbook); i++ {
+						err := global.MysqlDb.Select(&(trolleyTextbook[i].PhotoIdArr), "select id from textbook_photo where textbookId=?", trolleyTextbook[i].TextbookId)
+						if err != nil {
+							fmt.Println(err)
+							return
+						}
+					}
+					if err != nil {
+						c.JSON(200, gin.H{
+							"status": false,
+						})
+						fmt.Println(err)
+						return
+					}
+					c.JSON(200, gin.H{
+						"status": true,
+						"data":   trolleyTextbook,
+					})
 					fmt.Println("update successfully!")
 				}
 			}
