@@ -871,7 +871,7 @@ func GetTrolleyTextbook(c *gin.Context) {
 		}
 	}
 	var trolleyTextbook []deal.TrolleyTextbook
-	err = global.MysqlDb.Select(&trolleyTextbook, "select user_trolley_subscription.id, user_trolley_subscription.textbookId, user_trolley_subscription.username, user_trolley_subscription.subscriptionNumber, user_trolley_subscription.status, user_trolley_subscription.createdAt, textbook.remain from user_trolley_subscription, textbook where user_trolley_subscription.username=? and user_trolley_subscription.textbookId=textbook.id", username)
+	err = global.MysqlDb.Select(&trolleyTextbook, "select user_trolley_subscription.id, user_trolley_subscription.textbookId, user_trolley_subscription.username, user_trolley_subscription.subscriptionNumber, user_trolley_subscription.status, user_trolley_subscription.createdAt, textbook.remain, textbook.price, textbook.bookName from user_trolley_subscription, textbook where user_trolley_subscription.username=? and user_trolley_subscription.textbookId=textbook.id", username)
 	for i := 0; i < len(trolleyTextbook); i++ {
 		err := global.MysqlDb.Select(&(trolleyTextbook[i].PhotoIdArr), "select id from textbook_photo where textbookId=?", trolleyTextbook[i].TextbookId)
 		if err != nil {
