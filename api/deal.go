@@ -1040,7 +1040,7 @@ func PayTextbook(c *gin.Context) {
 		if error != nil {
 			fmt.Println(error)
 		}
-		_, _ := global.MysqlDb.Exec("delete from user_trolley_subscription where id=?", idArr[i])
+		_, _ = global.MysqlDb.Exec("delete from user_trolley_subscription where id=?", idArr[i])
 	}
 	totalPrice, err := strconv.ParseInt(c.PostForm("totalPrice"), 10, 64)
 	if err != nil {
