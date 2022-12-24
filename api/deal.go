@@ -921,3 +921,20 @@ func DeleteTrolleyTextbook(c *gin.Context) {
 		"status": true,
 	})
 }
+
+func ChangeTrolleyTextbookQuantity(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, _ := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	unpaidSubscriptionId := c.PostForm("unpaidSubscriptionId")
+	quantity := c.PostForm("quantity")
+	_, _ = global.MysqlDb.Exec("update user_trolley_subscription set subscriptionNumber=? where id=?", quantity, unpaidSubscriptionId)
+	c.JSON(200, gin.H{
+		"status": true,
+	})
+}
