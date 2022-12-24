@@ -41,6 +41,7 @@ func RoutesInitialize() {
 		deal.POST("/confirm-receipt", api.ConfirmReceipt)
 		deal.POST("/delete-trolley-textbook", api.DeleteTrolleyTextbook)
 		deal.POST("/get-filtered-textbook-by-excel", api.GetFilteredTextbookByExcel)
+		deal.POST("/get-trolley-textbook", api.GetTrolleyTextbook)
 	}
 
 	info := global.Router.Group("/info")

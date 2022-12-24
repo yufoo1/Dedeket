@@ -829,14 +829,51 @@ func ConfirmReceipt(c *gin.Context) {
 }
 
 func GetTrolleyTextbook(c *gin.Context) {
-	//token := c.PostForm("token")
-	//valid, userId := verifyToken(token)
-	//if !valid {
-	//	c.JSON(200, gin.H{
-	//		"status": false,
-	//	})
-	//	return
-	//}
+	token := c.PostForm("token")
+	valid, _ := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	var username string
+	var usernameArr []string
+	err := global.MysqlDb.Select(&usernameArr, "select username from user_login_token where token=?", token)
+	if err != nil {
+		fmt.Println("exec failed, ", err)
+		return
+	} else {
+		if len(usernameArr) == 0 {
+			fmt.Println("not found!")
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		} else {
+			username = usernameArr[0]
+		}
+	}
+	var trolleyTextbook []deal.TrolleyTextbook
+	err = global.MysqlDb.Select(&trolleyTextbook, "select user_trolley_subscription.id, user_trolley_subscription.textbookId, user_trolley_subscription.username, user_trolley_subscription.subscriptionNumber, user_trolley_subscription.status, user_trolley_subscription.createdAt, textbook.remain from user_trolley_subscription, textbook where user_trolley_subscription.username=? and user_trolley_subscription.textbookId=textbook.id", username)
+	for i := 0; i < len(trolleyTextbook); i++ {
+		err := global.MysqlDb.Select(&(trolleyTextbook[i].PhotoIdArr), "select id from textbook_photo where textbookId=?", trolleyTextbook[i].TextbookId)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		fmt.Println(err)
+		return
+	}
+	c.JSON(200, gin.H{
+		"trolleyTextbook": trolleyTextbook,
+		"status":          true,
+	})
 }
 
 func DeleteTrolleyTextbook(c *gin.Context) {
