@@ -47,5 +47,8 @@ func RoutesInitialize() {
 	info := global.Router.Group("/info")
 	{
 		info.POST("/upload-head-portrait", api.UploadHeadPortrait)
+		info.POST("/get-phone", api.GetPhone)
+		info.POST("/change-phone", api.ChangePhone)
+		info.POST("/change-password", api.ChangePassword)
 	}
 }

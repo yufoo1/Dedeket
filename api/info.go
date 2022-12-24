@@ -63,3 +63,65 @@ func UploadHeadPortrait(c *gin.Context) {
 		"status": true,
 	})
 }
+
+func ChangePassword(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, userId := verifyToken(token)
+	if !valid {
+		fmt.Println("error")
+		return
+	}
+	newPassword := c.PostForm("newPassword")
+	oldPassword := c.PostForm("oldPassword")
+	var passwordArr []string
+	var password string
+	err := global.MysqlDb.Select(&passwordArr, "select password from user_login where id=?", userId)
+	if err != nil {
+		fmt.Println(err)
+	}
+	password = passwordArr[0]
+	if oldPassword != password {
+		c.JSON(200, gin.H{
+			"status":   false,
+			"notMatch": true,
+		})
+	}
+	_, err = global.MysqlDb.Exec("update user_login set password=? where id=?", newPassword, userId)
+	c.JSON(200, gin.H{
+		"status": true,
+	})
+}
+
+func ChangePhone(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, userId := verifyToken(token)
+	if !valid {
+		fmt.Println("error")
+		return
+	}
+	newPhone := c.PostForm("newPhone")
+	_, _ = global.MysqlDb.Exec("update user_login set phone=? where id=?", newPhone, userId)
+	c.JSON(200, gin.H{
+		"status": true,
+	})
+}
+
+func GetPhone(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, userId := verifyToken(token)
+	if !valid {
+		fmt.Println("error")
+		return
+	}
+	var phoneArr []string
+	var phone string
+	err := global.MysqlDb.Select(&phoneArr, "select phone from user_login where id=?", userId)
+	if err != nil {
+		fmt.Println(err)
+	}
+	phone = phoneArr[0]
+	c.JSON(200, gin.H{
+		"status": true,
+		"phone":  phone,
+	})
+}
