@@ -44,6 +44,7 @@ func RoutesInitialize() {
 		deal.POST("/get-trolley-textbook", api.GetTrolleyTextbook)
 		deal.POST("/grade-textbook", api.GradeTextbook)
 		deal.POST("/pay-textbook", api.PayTextbook)
+		deal.POST("change-trolley-textbook-quantity", api.ChangeTrolleyTextbookQuantity)
 	}
 
 	info := global.Router.Group("/info")
@@ -52,6 +53,5 @@ func RoutesInitialize() {
 		info.POST("/get-phone", api.GetPhone)
 		info.POST("/change-phone", api.ChangePhone)
 		info.POST("/change-password", api.ChangePassword)
-		info.POST("change-trolley-textbook-quantity", api.ChangeTrolleyTextbookQuantity)
 	}
 }

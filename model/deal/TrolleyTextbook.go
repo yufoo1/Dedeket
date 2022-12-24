@@ -12,3 +12,11 @@ type TrolleyTextbook struct {
 	CreatedAt          string `json:"createdAt" db:"createdAt"`
 	PhotoIdArr         []int  `json:"photoIdArr"`
 }
+
+type PaidTrolleyTextbook struct {
+	Id                 int    `json:"id" db:"id"`
+	BookName           string `json:"bookName" db:"bookName"`
+	PhotoIdArr         []int  `json:"photoIdArr"`
+	Price              int    `json:"price" db:"price"`
+	SubscriptionNumber int    `json:"subscriptionNumber" db:"subscriptionNumber"`
+}

@@ -1089,3 +1089,34 @@ func PayTextbook(c *gin.Context) {
 		"status": true,
 	})
 }
+
+func DisplayPurchaseRecord(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, userId := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	var purchaseRecordArr []deal.PurchaseRecord
+	err := global.MysqlDb.Select(&purchaseRecordArr, "select id, createdAt from purchase_record where userId=?", userId)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	var i int
+	for i = 0; i < len(purchaseRecordArr); i++ {
+		err := global.MysqlDb.Select(&purchaseRecordArr[i].PaidTrolleyTextbookArr, "select user_trolley_subscription.id, user_trolley_subscription.subscriptionNumber, from purchase_record where userId=?", userId)
+		if err != nil {
+			fmt.Println(err)
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		}
+	}
+}
