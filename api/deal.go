@@ -1156,7 +1156,7 @@ func DisplayPurchaseRecord(c *gin.Context) {
 			paidTrolleyTextbook.SubscriptionNumber = subscriptionNumberArr[j]
 			purchaseRecordArr[i].PaidTrolleyTextbookArr = append(purchaseRecordArr[i].PaidTrolleyTextbookArr, *paidTrolleyTextbook)
 			var photoIdArr []int
-			err = global.MysqlDb.Select(&(photoIdArr), "select textbook_photo.id from textbook_photo, purchase_record_subscription, textbook, user_trolley_subscription where purchase_record_subscription.purchaseRecordId=? and purchase_record_subscription.trolleySubscriptionId=user_trolley_subscription.id and user_trolley_subscription.textbookId=textbook.id and textbook.id=textbook_photo.textbookId", purchaseRecordArr[i].Id)
+			err = global.MysqlDb.Select(&(photoIdArr), "select textbook_photo.id from textbook_photo, textbook, user_trolley_subscription where user_trolley_subscription.id=? and user_trolley_subscription.textbookId=textbook.id and textbook.id=textbook_photo.textbookId", idArr[j])
 			if err != nil {
 				fmt.Println(err)
 				return
