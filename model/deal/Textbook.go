@@ -6,18 +6,19 @@ import (
 )
 
 type Textbook struct {
-	Id          int    `json:"id" db:"id"`
-	BookName    string `json:"bookName" db:"bookName"`
-	Writer      string `json:"writer" db:"writer"`
-	Class       string `json:"class" db:"class"`
-	Description string `json:"description" db:"description"`
-	CreatedAt   string `json:"createdAt" db:"createdAt"`
-	Seller      string `json:"seller" db:"seller"`
-	College     string `json:"college" db:"college"`
-	Remain      int64  `json:"remain" db:"remain"`
-	Total       int64  `json:"total" db:"total"`
-	Price       int64  `json:"price" db:"price"`
-	PhotoIdArr  []int  `json:"photoIdArr"`
+	Id          int     `json:"id" db:"id"`
+	BookName    string  `json:"bookName" db:"bookName"`
+	Writer      string  `json:"writer" db:"writer"`
+	Class       string  `json:"class" db:"class"`
+	Description string  `json:"description" db:"description"`
+	CreatedAt   string  `json:"createdAt" db:"createdAt"`
+	Seller      string  `json:"seller" db:"seller"`
+	College     string  `json:"college" db:"college"`
+	Remain      int64   `json:"remain" db:"remain"`
+	Total       int64   `json:"total" db:"total"`
+	Price       int64   `json:"price" db:"price"`
+	PhotoIdArr  []int   `json:"photoIdArr"`
+	Grade       float64 `json:"grade" db:"grade"`
 }
 
 func InsertTextbook(textbook *Textbook) {

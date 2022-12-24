@@ -155,7 +155,23 @@ func GetFilteredTextBook(c *gin.Context) {
 		return
 	} else {
 		for i := 0; i < len(textbookArr); i++ {
-			err := global.MysqlDb.Select(&(textbookArr[i].PhotoIdArr), "select id from textbook_photo where textbookId=?", textbookArr[i].Id)
+			var gradeArr []int
+			err := global.MysqlDb.Select(&(gradeArr), "select grade from textbook_grade where textbookId=?", textbookArr[i].Id)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			var i int
+			cnt := 0
+			for i = 0; i < len(gradeArr); i++ {
+				cnt = cnt + gradeArr[i]
+			}
+			if len(gradeArr) == 0 {
+				textbookArr[i].Grade = 0
+			} else {
+				textbookArr[i].Grade = float64(cnt) / float64(len(gradeArr))
+			}
+			err = global.MysqlDb.Select(&(textbookArr[i].PhotoIdArr), "select id from textbook_photo where textbookId=?", textbookArr[i].Id)
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -974,4 +990,32 @@ func ChangeTrolleyTextbookQuantity(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status": true,
 	})
+}
+
+func GradeTextbook(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, userId := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	textbookId := c.PostForm("textbookId")
+	grade, err := strconv.ParseInt(c.PostForm("grade"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	_, err = global.MysqlDb.Exec("insert into textbook_grade(userId, textbookId, grade) values (?, ?, ?)", userId, textbookId, grade)
+	if err != nil {
+		fmt.Println(err)
+	}
+	c.JSON(200, gin.H{
+		"status": true,
+	})
+	fmt.Println("insert ok")
 }
