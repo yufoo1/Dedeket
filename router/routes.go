@@ -50,5 +50,6 @@ func RoutesInitialize() {
 		info.POST("/get-phone", api.GetPhone)
 		info.POST("/change-phone", api.ChangePhone)
 		info.POST("/change-password", api.ChangePassword)
+		info.POST("change-trolley-textbook-quantity", api.ChangeTrolleyTextbookQuantity)
 	}
 }

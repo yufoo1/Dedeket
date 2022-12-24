@@ -85,6 +85,7 @@ func ChangePassword(c *gin.Context) {
 			"status":   false,
 			"notMatch": true,
 		})
+		return
 	}
 	_, err = global.MysqlDb.Exec("update user_login set password=? where id=?", newPassword, userId)
 	c.JSON(200, gin.H{
