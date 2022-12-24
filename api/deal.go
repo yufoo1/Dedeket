@@ -11,6 +11,7 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -1018,4 +1019,73 @@ func GradeTextbook(c *gin.Context) {
 		"status": true,
 	})
 	fmt.Println("insert ok")
+}
+
+func PayTextbook(c *gin.Context) {
+	token := c.PostForm("token")
+	valid, userId := verifyToken(token)
+	if !valid {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	idArrString := c.PostForm("idArr")
+	idStringArr := strings.Split(idArrString, " ")
+	var idArr []int64
+	var i int
+	for i = 0; i < len(idStringArr); i++ {
+		tmp, error := strconv.ParseInt(idStringArr[i], 10, 64)
+		idArr = append(idArr, tmp)
+		if error != nil {
+			fmt.Println(error)
+		}
+		_, _ := global.MysqlDb.Exec("delete from user_trolley_subscription where id=?", idArr[i])
+	}
+	totalPrice, err := strconv.ParseInt(c.PostForm("totalPrice"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	_, err = global.MysqlDb.Exec("insert into purchase_record(userId, createdAt, totalPrice) values (?, ?, ?)", userId, time.Now().Format("2006-01-02 15:04:05"), totalPrice)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	var tmpIdArr []int
+	var purchaseRecordId int
+	err = global.MysqlDb.Select(&tmpIdArr, "select id from purchase_record order by id desc limit 1")
+	if err != nil {
+		fmt.Println("exec failed, ", err)
+		return
+	} else {
+		if len(tmpIdArr) == 0 {
+			fmt.Println("not found!")
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		} else {
+			purchaseRecordId = tmpIdArr[0]
+		}
+	}
+	for i = 0; i < len(idArr); i++ {
+		_, err = global.MysqlDb.Exec("insert into purchase_record_subscription(trolleySubscriptionId, purchaseRecordId) values (?, ?)", idArr[i], purchaseRecordId)
+		if err != nil {
+			fmt.Println(err)
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		}
+	}
+	c.JSON(200, gin.H{
+		"status": true,
+	})
 }
