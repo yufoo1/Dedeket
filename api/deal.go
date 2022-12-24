@@ -831,6 +831,21 @@ func ConfirmReceipt(c *gin.Context) {
 func GetTrolleyTextbook(c *gin.Context) {
 	token := c.PostForm("token")
 	valid, _ := verifyToken(token)
+	pageIndex, err := strconv.ParseInt(c.PostForm("pageIndex"), 10, 64)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
+	pageSize, err := strconv.ParseInt(c.PostForm("pageSize"), 10, 64)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status": false,
+		})
+		return
+	}
 	if !valid {
 		c.JSON(200, gin.H{
 			"status": false,
@@ -839,7 +854,7 @@ func GetTrolleyTextbook(c *gin.Context) {
 	}
 	var username string
 	var usernameArr []string
-	err := global.MysqlDb.Select(&usernameArr, "select username from user_login_token where token=?", token)
+	err = global.MysqlDb.Select(&usernameArr, "select username from user_login_token where token=?", token)
 	if err != nil {
 		fmt.Println("exec failed, ", err)
 		return
@@ -870,9 +885,16 @@ func GetTrolleyTextbook(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
+	var upperLimit int64
+	if int64(len(trolleyTextbook)) < pageIndex*pageSize {
+		upperLimit = int64(len(trolleyTextbook))
+	} else {
+		upperLimit = pageIndex * pageSize
+	}
 	c.JSON(200, gin.H{
-		"trolleyTextbook": trolleyTextbook,
-		"status":          true,
+		"data":   trolleyTextbook[(pageIndex-1)*pageSize : upperLimit],
+		"status": true,
+		"total":  math.Ceil(float64(len(trolleyTextbook)) / float64(int(pageSize))),
 	})
 }
 
