@@ -162,10 +162,10 @@ func GetFilteredTextBook(c *gin.Context) {
 				fmt.Println(err)
 				return
 			}
-			var i int
+			var j int
 			cnt := 0
-			for i = 0; i < len(gradeArr); i++ {
-				cnt = cnt + gradeArr[i]
+			for j = 0; j < len(gradeArr); j++ {
+				cnt = cnt + gradeArr[j]
 			}
 			if len(gradeArr) == 0 {
 				textbookArr[i].Grade = 0
