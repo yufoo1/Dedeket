@@ -1040,7 +1040,7 @@ func PayTextbook(c *gin.Context) {
 		if error != nil {
 			fmt.Println(error)
 		}
-		_, _ = global.MysqlDb.Exec("delete from user_trolley_subscription where id=?", idArr[i])
+		_, _ = global.MysqlDb.Exec("update user_trolley_subscription set status=-1 where id=?", idArr[i])
 	}
 	totalPrice, err := strconv.ParseInt(c.PostForm("totalPrice"), 10, 64)
 	if err != nil {
@@ -1110,7 +1110,9 @@ func DisplayPurchaseRecord(c *gin.Context) {
 	}
 	var i int
 	for i = 0; i < len(purchaseRecordArr); i++ {
-		err := global.MysqlDb.Select(&purchaseRecordArr[i].PaidTrolleyTextbookArr, "select user_trolley_subscription.id, user_trolley_subscription.subscriptionNumber, from purchase_record where userId=?", userId)
+		fmt.Println(purchaseRecordArr[i].Id)
+		var priceArr []int
+		err := global.MysqlDb.Select(&priceArr, "select textbook.price from purchase_record_subscription, textbook, user_trolley_subscription where purchase_record_subscription.purchaseRecordId=? and purchase_record_subscription.trolleySubscriptionId=user_trolley_subscription.id and user_trolley_subscription.textbookId=textbook.id", 1)
 		if err != nil {
 			fmt.Println(err)
 			c.JSON(200, gin.H{
@@ -1118,5 +1120,45 @@ func DisplayPurchaseRecord(c *gin.Context) {
 			})
 			return
 		}
+		var subscriptionNumberArr []int
+		err = global.MysqlDb.Select(&subscriptionNumberArr, "select user_trolley_subscription.subscriptionNumber from purchase_record_subscription, textbook, user_trolley_subscription where purchase_record_subscription.purchaseRecordId=? and purchase_record_subscription.trolleySubscriptionId=user_trolley_subscription.id and user_trolley_subscription.textbookId=textbook.id", 1)
+		if err != nil {
+			fmt.Println(err)
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		}
+		var idArr []int
+		err = global.MysqlDb.Select(&idArr, "select user_trolley_subscription.id from purchase_record_subscription, textbook, user_trolley_subscription where purchase_record_subscription.purchaseRecordId=? and purchase_record_subscription.trolleySubscriptionId=user_trolley_subscription.id and user_trolley_subscription.textbookId=textbook.id", 1)
+		if err != nil {
+			fmt.Println(err)
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		}
+		var bookNameArr []string
+		err = global.MysqlDb.Select(&bookNameArr, "select textbook.bookName from purchase_record_subscription, textbook, user_trolley_subscription where purchase_record_subscription.purchaseRecordId=? and purchase_record_subscription.trolleySubscriptionId=user_trolley_subscription.id and user_trolley_subscription.textbookId=textbook.id", purchaseRecordArr[i].Id)
+		if err != nil {
+			fmt.Println(err)
+			c.JSON(200, gin.H{
+				"status": false,
+			})
+			return
+		}
+		var j int
+		for j = 0; j < len(idArr); j++ {
+			paidTrolleyTextbook := new(deal.PaidTrolleyTextbook)
+			paidTrolleyTextbook.Id = idArr[j]
+			paidTrolleyTextbook.BookName = bookNameArr[j]
+			paidTrolleyTextbook.Price = priceArr[j]
+			paidTrolleyTextbook.SubscriptionNumber = subscriptionNumberArr[j]
+			purchaseRecordArr[i].PaidTrolleyTextbookArr = append(purchaseRecordArr[i].PaidTrolleyTextbookArr, *paidTrolleyTextbook)
+		}
 	}
+	c.JSON(200, gin.H{
+		"data":   purchaseRecordArr,
+		"status": true,
+	})
 }

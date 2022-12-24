@@ -44,7 +44,8 @@ func RoutesInitialize() {
 		deal.POST("/get-trolley-textbook", api.GetTrolleyTextbook)
 		deal.POST("/grade-textbook", api.GradeTextbook)
 		deal.POST("/pay-textbook", api.PayTextbook)
-		deal.POST("change-trolley-textbook-quantity", api.ChangeTrolleyTextbookQuantity)
+		deal.POST("/change-trolley-textbook-quantity", api.ChangeTrolleyTextbookQuantity)
+		deal.POST("/display-purchase-record", api.DisplayPurchaseRecord)
 	}
 
 	info := global.Router.Group("/info")
