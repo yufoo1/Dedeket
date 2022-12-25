@@ -1113,7 +1113,7 @@ func DisplayPurchaseRecord(c *gin.Context) {
 	for i = 0; i < len(purchaseRecordArr); i++ {
 		fmt.Println(purchaseRecordArr[i].Id)
 		var priceArr []int
-		err := global.MysqlDb.Select(&priceArr, "select textbook.price from purchase_record_subscription, textbook, user_trolley_subscription where purchase_record_subscription.purchaseRecordId=? and purchase_record_subscription.trolleySubscriptionId=user_trolley_subscription.id and user_trolley_subscription.textbookId=textbook.id", 1)
+		err := global.MysqlDb.Select(&priceArr, "select textbook.price from purchase_record_subscription, textbook, user_trolley_subscription where purchase_record_subscription.purchaseRecordId=? and purchase_record_subscription.trolleySubscriptionId=user_trolley_subscription.id and user_trolley_subscription.textbookId=textbook.id", purchaseRecordArr[i].Id)
 		if err != nil {
 			fmt.Println(err)
 			c.JSON(200, gin.H{
@@ -1122,7 +1122,7 @@ func DisplayPurchaseRecord(c *gin.Context) {
 			return
 		}
 		var subscriptionNumberArr []int
-		err = global.MysqlDb.Select(&subscriptionNumberArr, "select user_trolley_subscription.subscriptionNumber from purchase_record_subscription, textbook, user_trolley_subscription where purchase_record_subscription.purchaseRecordId=? and purchase_record_subscription.trolleySubscriptionId=user_trolley_subscription.id and user_trolley_subscription.textbookId=textbook.id", 1)
+		err = global.MysqlDb.Select(&subscriptionNumberArr, "select user_trolley_subscription.subscriptionNumber from purchase_record_subscription, textbook, user_trolley_subscription where purchase_record_subscription.purchaseRecordId=? and purchase_record_subscription.trolleySubscriptionId=user_trolley_subscription.id and user_trolley_subscription.textbookId=textbook.id", purchaseRecordArr[i].Id)
 		if err != nil {
 			fmt.Println(err)
 			c.JSON(200, gin.H{
@@ -1131,7 +1131,7 @@ func DisplayPurchaseRecord(c *gin.Context) {
 			return
 		}
 		var idArr []int
-		err = global.MysqlDb.Select(&idArr, "select user_trolley_subscription.id from purchase_record_subscription, textbook, user_trolley_subscription where purchase_record_subscription.purchaseRecordId=? and purchase_record_subscription.trolleySubscriptionId=user_trolley_subscription.id and user_trolley_subscription.textbookId=textbook.id", 1)
+		err = global.MysqlDb.Select(&idArr, "select user_trolley_subscription.id from purchase_record_subscription, textbook, user_trolley_subscription where purchase_record_subscription.purchaseRecordId=? and purchase_record_subscription.trolleySubscriptionId=user_trolley_subscription.id and user_trolley_subscription.textbookId=textbook.id", purchaseRecordArr[i].Id)
 		if err != nil {
 			fmt.Println(err)
 			c.JSON(200, gin.H{
@@ -1149,6 +1149,7 @@ func DisplayPurchaseRecord(c *gin.Context) {
 			return
 		}
 		var j int
+		fmt.Println(len(idArr))
 		for j = 0; j < len(idArr); j++ {
 			paidTrolleyTextbook := new(deal.PaidTrolleyTextbook)
 			paidTrolleyTextbook.Id = idArr[j]
