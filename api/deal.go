@@ -286,7 +286,7 @@ func AddTextbookToShoppingTrolley(c *gin.Context) {
 		//	return
 		//}
 		var subscriptionNumberArr []int
-		err := global.MysqlDb.Select(&subscriptionNumberArr, "select subscriptionNumber from user_trolley_subscription where textbookId=?", textbookId)
+		err := global.MysqlDb.Select(&subscriptionNumberArr, "select subscriptionNumber from user_trolley_subscription where textbookId=? and username=?", textbookId, username)
 		if err != nil {
 			fmt.Println("exec failed, ", err)
 			return
