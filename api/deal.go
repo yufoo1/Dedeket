@@ -450,7 +450,7 @@ func UpdateUploadedTextbook(c *gin.Context) {
 	total, _ := strconv.ParseInt(c.PostForm("total"), 10, 64)
 	remain, _ := strconv.ParseInt(c.PostForm("remain"), 10, 64)
 	price, _ := strconv.ParseInt(c.PostForm("price"), 10, 64)
-	_, err := global.MysqlDb.Exec("update textbook set bookName=?, writer=?, class=?, description=?, college=?, total=?, remain=?, price=? where id=?", bookName, writer, class, description, college, total, remain, textbookId, price)
+	_, err := global.MysqlDb.Exec("update textbook set bookName=?, writer=?, class=?, description=?, college=?, total=?, remain=?, price=? where id=?", bookName, writer, class, description, college, total, remain, price, textbookId)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(200, gin.H{
