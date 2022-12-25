@@ -40,21 +40,23 @@ func Register(c *gin.Context) {
 		}
 	}
 
-	err = global.MysqlDb.Select(&idArr, "select id from user_login where phone=?", phone)
-	if err != nil {
-		fmt.Println("exec failed, ", err)
-		return
-	} else {
-		if len(idArr) != 0 {
-			fmt.Println("手机号已被注册")
-			c.JSON(200, gin.H{
-				"usernameDuplicate": false,
-				"phoneDuplicate":    true,
-				"username":          username,
-				"password":          password,
-				"phone":             phone,
-			})
+	if phone != "" {
+		err = global.MysqlDb.Select(&idArr, "select id from user_login where phone=?", phone)
+		if err != nil {
+			fmt.Println("exec failed, ", err)
 			return
+		} else {
+			if len(idArr) != 0 {
+				fmt.Println("手机号已被注册")
+				c.JSON(200, gin.H{
+					"usernameDuplicate": false,
+					"phoneDuplicate":    true,
+					"username":          username,
+					"password":          password,
+					"phone":             phone,
+				})
+				return
+			}
 		}
 	}
 
