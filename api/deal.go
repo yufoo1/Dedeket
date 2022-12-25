@@ -122,7 +122,8 @@ func UploadNewTextbook(c *gin.Context) {
 	textbookId := textbookIdArr[0]
 	_, err = global.MysqlDb.Exec("update textbook_photo set textbookId=? where id=?", textbookId, photoId)
 	c.JSON(200, gin.H{
-		"status": true,
+		"status":     true,
+		"textbookId": textbookId,
 	})
 }
 
