@@ -1041,6 +1041,20 @@ func PayTextbook(c *gin.Context) {
 		if error != nil {
 			fmt.Println(error)
 		}
+		var subscriptionNumberArr []int
+		var subscriptionNumber int
+		_ = global.MysqlDb.Select(&subscriptionNumberArr, "select subscriptionNumber from user_trolley_subscription where id=?", idArr[i])
+		if len(subscriptionNumberArr) != 0 {
+			subscriptionNumber = subscriptionNumberArr[0]
+		}
+		var remainArr []int
+		var remain int
+		_ = global.MysqlDb.Select(&remainArr, "select textbook.remain from textbook, user_trolley_subscription where user_trolley_subscription.id=? and textbook.id=user_trolley_subscription.textbookId", idArr[i])
+		if len(remainArr) != 0 {
+			remain = remainArr[0]
+		}
+		remain = remain - subscriptionNumber
+		_, _ = global.MysqlDb.Exec("update textbook, user_trolley_subscription set textbook.remain=? where user_trolley_subscription.id=? and user_trolley_subscription.textbookId=textbook.id", remain, idArr[i])
 		_, _ = global.MysqlDb.Exec("update user_trolley_subscription set status=-1 where id=?", idArr[i])
 	}
 	totalPrice, err := strconv.ParseInt(c.PostForm("totalPrice"), 10, 64)
